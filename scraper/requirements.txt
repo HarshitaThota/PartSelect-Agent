@@ -1,0 +1,7 @@
+requests
+beautifulsoup4
+selenium
+lxml
+pandas
+aiohttp
+asyncio
