@@ -44,3 +44,7 @@ __pycache__/
 pip-log.txt
 pip-delete-this-directory.txt
 .pytest_cache/
+
+
+notes.txt 
+tests.txt

@@ -26,6 +26,15 @@ class ResponseAgent(BaseAgent):
             specialist_result = context.get("specialist_result", {})
             conversation_history = context.get("conversation_history", [])
 
+            print(f"📝 Response agent processing query: {query}")
+            print(f"📝 Intent: {intent_data.get('intent', 'unknown')}")
+            print(f"📝 Specialist result keys: {list(specialist_result.keys())}")
+            print(f"📝 Transaction type: {specialist_result.get('transaction_type', 'N/A')}")
+            print(f"📝 Parts in specialist_result: {len(specialist_result.get('parts', []))}")
+            print(f"📝 Has 'part' key: {'part' in specialist_result}")
+            if 'part' in specialist_result:
+                print(f"📝 Single part: {specialist_result['part'].get('partselect_number', 'unknown')}")
+
             # Generate response using Deepseek if available
             if self.deepseek_api_key and self.deepseek_api_key != "demo_key":
                 print(f"🤖 Using Deepseek API for response generation (key: {self.deepseek_api_key[:10]}...)")
@@ -138,6 +147,17 @@ Please provide a helpful response about the parts query."""
                 return f"To install {guide['part_name']}: This is a {guide['difficulty']} repair taking about {guide['time_required']}. {guide['instructions']} {'Tools required.' if guide['tools_required'] else 'No tools needed.'}"
 
         elif intent == "troubleshooting":
+            # Check for common problems response
+            common_problems = specialist_result.get("common_problems", [])
+            if common_problems:
+                appliance_type = specialist_result.get("appliance_type", "appliance")
+                problems_text = "\n".join([
+                    f"• {problem['problem']}: {problem['solutions']}"
+                    for problem in common_problems[:5]  # Limit to top 5 problems
+                ])
+                return f"Here are the most common {appliance_type} problems and their solutions:\n\n{problems_text}"
+
+            # Legacy troubleshooting results format
             troubleshooting_results = specialist_result.get("troubleshooting_results", [])
             if troubleshooting_results:
                 return f"Based on the symptoms described, I found {len(troubleshooting_results)} potential solutions. The most likely cause could be related to {troubleshooting_results[0]['part']['category']}."
@@ -173,8 +193,15 @@ Please provide a helpful response about the parts query."""
         # Add intent information
         context_parts.append(f"User intent: {intent_data.get('intent', 'unknown')}")
 
-        # Add parts information with detailed data
+        # Handle different data structures for parts
         parts = specialist_result.get("parts", [])
+
+        # For transaction intents, the part might be in a "part" key (singular)
+        if not parts and "part" in specialist_result:
+            parts = [specialist_result["part"]]
+            print(f"📝 Using singular 'part' from transaction agent: {parts[0].get('partselect_number', 'unknown')}")
+
+        # Add parts information with detailed data
         if parts:
             context_parts.append(f"Found {len(parts)} relevant parts:")
             for i, part in enumerate(parts[:2]):  # Limit to top 2 for context
@@ -200,5 +227,30 @@ Please provide a helpful response about the parts query."""
         if installation_guides:
             for guide in installation_guides:
                 context_parts.append(f"Installation: {guide['difficulty']} difficulty, {guide['time_required']}")
+
+        # Add transaction-specific information
+        transaction_type = specialist_result.get("transaction_type", "")
+        if transaction_type:
+            context_parts.append(f"Transaction type: {transaction_type}")
+
+            # Add cart action if available
+            cart_action = specialist_result.get("cart_action", "")
+            if cart_action:
+                context_parts.append(f"Cart action: {cart_action}")
+
+            # Add purchase options if available
+            purchase_options = specialist_result.get("purchase_options", {})
+            if purchase_options:
+                context_parts.append(f"Purchase options: quantity={purchase_options.get('quantity', 1)}, shipping available")
+
+        # Add troubleshooting common problems
+        common_problems = specialist_result.get("common_problems", [])
+        if common_problems:
+            appliance_type = specialist_result.get("appliance_type", "appliance")
+            context_parts.append(f"Common {appliance_type} problems and solutions:")
+            for i, problem in enumerate(common_problems[:5]):  # Limit to top 5
+                context_parts.append(f"{i+1}. {problem['problem']}")
+                context_parts.append(f"   Causes: {problem['causes']}")
+                context_parts.append(f"   Solutions: {problem['solutions']}")
 
         return "\n".join(context_parts) if context_parts else "No specific context available"

@@ -58,6 +58,7 @@ class AgentOrchestrator:
         search_agent = self.agents["search"]
         search_agent.register_tool("search_parts", self.tools.search_parts, "Search for parts")
         search_agent.register_tool("get_parts_by_category", self.tools.get_parts_by_category, "Get parts by category")
+        search_agent.register_tool("get_part_details", self.tools.get_part_details, "Get part details")
 
         compatibility_agent = self.agents["compatibility"]
         compatibility_agent.register_tool("check_compatibility", self.tools.check_compatibility, "Check part compatibility")
@@ -76,9 +77,8 @@ class AgentOrchestrator:
         vector_initialized = await self.tools.initialize_vector_search()
         if vector_initialized:
             print("✅ Vector search initialized successfully")
-            # Register semantic search tools with search agent
-            search_agent.register_tool("semantic_search", self.tools.semantic_search, "Semantic search for parts")
-            search_agent.register_tool("find_similar_parts", self.tools.find_similar_parts, "Find similar parts")
+            # Note: semantic search is now integrated into search_parts method
+            # No need to register separate semantic search tools
         else:
             print("⚠️ Vector search not available - using traditional search only")
 
@@ -172,6 +172,8 @@ class AgentOrchestrator:
             agent_trace = ["intent"]
             specialist_result = None
 
+            print(f"🎯 Routing query with intent: {intent}")
+
             if intent in ["part_lookup", "product_search"]:
                 specialist_result = await self._handle_search(query, intent_data)
                 agent_trace.append("search")
@@ -188,12 +190,14 @@ class AgentOrchestrator:
                 specialist_result = await self._handle_troubleshooting(query, intent_data)
                 agent_trace.append("troubleshooting")
 
-            elif intent in ["purchase_intent", "cart_operations", "pricing_inquiry", "checkout_assistance"]:
+            elif intent in ["purchase_intent", "purchase_confirmation", "cart_operations", "pricing_inquiry", "checkout_assistance"]:
+                print(f"🛒 Routing to transaction agent for intent: {intent}")
                 specialist_result = await self._handle_transaction(query, intent_data)
                 agent_trace.append("transaction")
 
             else:
                 # General query - route to search
+                print(f"🔍 Routing to search agent for unknown intent: {intent}")
                 specialist_result = await self._handle_search(query, intent_data)
                 agent_trace.append("search")
 
@@ -246,6 +250,30 @@ class AgentOrchestrator:
 
     async def _handle_transaction(self, query: str, intent_data: Dict) -> AgentResult:
         """Handle transaction-related queries"""
+        print(f"🛒 Orchestrator _handle_transaction called with query: {query}")
+        print(f"🛒 Intent data: {intent_data}")
+
+        # Check if this is a purchase intent with part number - route to search first
+        if intent_data.get("intent") == "purchase_intent":
+            entities = intent_data.get("extracted_entities", {})
+            part_numbers = entities.get("part_numbers", [])
+
+            if part_numbers:
+                print(f"🛒 Purchase intent with part number {part_numbers[0]}, routing to search first")
+                # Route to search first to find the part
+                search_result = await self.agents["search"].process(query, intent_data)
+
+                if search_result.success and search_result.data.get("parts"):
+                    # Pass parts to transaction agent
+                    enhanced_context = intent_data.copy()
+                    enhanced_context["specialist_result"] = search_result.data
+                    print(f"🛒 Found {len(search_result.data.get('parts', []))} parts, passing to transaction agent")
+                    return await self.agents["transaction"].process(query, enhanced_context)
+                else:
+                    print(f"🛒 No parts found in search, continuing with transaction agent anyway")
+                    # No parts found, but still process with transaction agent for proper error handling
+                    return await self.agents["transaction"].process(query, intent_data)
+
 
         # Check if this is a cart add request that needs parts
         if ("add" in query.lower() and

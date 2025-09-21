@@ -18,6 +18,8 @@ class TransactionAgent(BaseAgent):
 
     async def process(self, query: str, context: Dict[str, Any] = None) -> AgentResult:
         """Process transaction-related queries"""
+        print(f"🔄 Transaction agent process called with query: {query}")
+        print(f"🔄 Transaction agent context: {context}")
         try:
             # Handle different context structures
             if context and "intent" in context and isinstance(context["intent"], str):
@@ -31,9 +33,13 @@ class TransactionAgent(BaseAgent):
 
             specialist_result = context.get("specialist_result", {}) if context else {}
             parts = specialist_result.get("parts", [])
+            print(f"🔄 Transaction agent extracted {len(parts)} parts from specialist_result")
 
             if intent == "purchase_intent":
+                print(f"🔄 Calling _handle_purchase_intent with {len(parts)} parts")
                 return await self._handle_purchase_intent(query, parts, context)
+            elif intent == "purchase_confirmation":
+                return await self._handle_purchase_confirmation(query, context)
             elif intent == "cart_operations":
                 return await self._handle_cart_operations(query, context)
             elif intent == "pricing_inquiry":
@@ -51,7 +57,11 @@ class TransactionAgent(BaseAgent):
 
     async def _handle_purchase_intent(self, query: str, parts: List[Dict], context: Dict) -> AgentResult:
         """Handle when user wants to purchase a part"""
+        print(f"🔄 _handle_purchase_intent called with {len(parts)} parts")
+        print(f"🔄 Parts data: {[p.get('partselect_number', 'no_part_number') for p in parts]}")
+
         if not parts:
+            print(f"🔄 No parts provided to _handle_purchase_intent")
             return AgentResult(
                 success=True,
                 data={
@@ -68,12 +78,14 @@ class TransactionAgent(BaseAgent):
 
         # Take the first/most relevant part
         part = parts[0]
+        print(f"🔄 Selected part for purchase: {part.get('partselect_number', 'unknown')} - {part.get('name', 'unknown')}")
 
-        return AgentResult(
+        result = AgentResult(
             success=True,
             data={
                 "transaction_type": "purchase_intent",
                 "part": part,
+                "parts": [part],  # Include in parts array for API response
                 "cart_action": "add_to_cart",
                 "total_price": part.get("price", 0),
                 "availability": "in_stock" if part.get("in_stock", True) else "out_of_stock",
@@ -91,13 +103,130 @@ class TransactionAgent(BaseAgent):
             },
             message=f"Ready to help you purchase {part['name']} (#{part['partselect_number']})"
         )
+        print(f"🔄 _handle_purchase_intent returning success with message: {result.message}")
+        return result
+
+    async def _handle_purchase_confirmation(self, query: str, context: Dict) -> AgentResult:
+        """Handle purchase confirmation responses like 'yes', 'proceed', etc."""
+        print(f"🔄 _handle_purchase_confirmation called with query: {query}")
+
+        # Check if we have a last shown part from the orchestrator
+        # This would be passed via context from the orchestrator
+        last_part = context.get("last_shown_part")
+
+        if last_part:
+            part_number = last_part.get("partselect_number")
+            print(f"🔄 Found last shown part: {part_number}")
+
+            # Add the part to cart
+            return AgentResult(
+                success=True,
+                data={
+                    "transaction_type": "add_to_cart",
+                    "part": last_part,
+                    "cart_action": "add_to_cart",
+                    "part_number": part_number,
+                    "quantity": 1,
+                    "message": f"Perfect! I've added the {last_part['name']} (#{part_number}) to your cart for ${last_part['price']}. Your cart now has this item ready for checkout.",
+                    "suggested_actions": [
+                        "View your cart",
+                        "Continue shopping",
+                        "Proceed to checkout",
+                        "Search for more parts"
+                    ]
+                },
+                message=f"Added {last_part['name']} to cart successfully"
+            )
+        else:
+            return AgentResult(
+                success=True,
+                data={
+                    "transaction_type": "purchase_confirmation_no_context",
+                    "message": "I'd be happy to help you complete your purchase! However, I need you to specify which part you'd like to add to your cart. Please provide the part number or tell me which specific part you want to purchase.",
+                    "suggested_actions": [
+                        "Specify the part number you want to purchase",
+                        "Browse available parts",
+                        "Search for your appliance model",
+                        "View cart if you have items already"
+                    ]
+                },
+                message="Purchase confirmation received but need part specification"
+            )
 
     async def _handle_cart_operations(self, query: str, context: Dict) -> AgentResult:
         """Handle cart-related operations"""
+        print(f"🛒 Transaction agent handling cart operations: {query}")
 
-        # Check if user is asking to add a specific type of part
-        if "add" in query.lower():
-            if "ice" in query.lower() or "icemaker" in query.lower():
+        # Check if this is a generic confirmation like "yes", "add it", etc.
+        confirmation_phrases = ["yes", "add it", "yes add", "proceed"]
+        if any(phrase in query.lower() for phrase in confirmation_phrases):
+            # Check if we have a last shown part from context
+            last_part = context.get("last_shown_part")
+            if last_part:
+                part_number = last_part.get("partselect_number")
+                print(f"🛒 Cart confirmation for last shown part: {part_number}")
+
+                return AgentResult(
+                    success=True,
+                    data={
+                        "transaction_type": "add_to_cart",
+                        "part": last_part,
+                        "cart_action": "add_to_cart",
+                        "part_number": part_number,
+                        "quantity": 1,
+                        "message": f"Perfect! I've added the {last_part['name']} (#{part_number}) to your cart for ${last_part['price']}. Your cart now has this item ready for checkout.",
+                        "suggested_actions": [
+                            "View your cart",
+                            "Continue shopping",
+                            "Proceed to checkout",
+                            "Search for more parts"
+                        ]
+                    },
+                    message=f"Added {last_part['name']} to cart successfully"
+                )
+            else:
+                return AgentResult(
+                    success=True,
+                    data={
+                        "transaction_type": "cart_confirmation_no_context",
+                        "message": "I'd be happy to add a part to your cart! However, I need you to specify which part you'd like to add. Please provide the part number or tell me which specific part you want to purchase.",
+                        "suggested_actions": [
+                            "Specify the part number you want to add",
+                            "Browse available parts",
+                            "View current cart",
+                            "Search for your appliance model"
+                        ]
+                    },
+                    message="Cart confirmation received but need part specification"
+                )
+
+        # Check if user is asking to add/buy/purchase a specific type of part
+        purchase_keywords = ["add", "buy", "purchase", "order", "want to buy", "want to purchase", "want to order"]
+        if any(keyword in query.lower() for keyword in purchase_keywords):
+
+            # Extract part numbers from the query
+            import re
+            part_numbers = re.findall(r'[A-Z]{2}\d{8,}', query.upper())
+
+            if part_numbers:
+                # Handle specific part number purchase
+                part_number = part_numbers[0]
+                return AgentResult(
+                    success=True,
+                    data={
+                        "transaction_type": "part_purchase_request",
+                        "part_number": part_number,
+                        "message": f"I'll help you purchase part {part_number}. Let me show you the details and add it to your cart.",
+                        "suggested_actions": [
+                            "View part details",
+                            "Add to cart",
+                            "Check compatibility",
+                            "View current cart"
+                        ]
+                    },
+                    message=f"Processing purchase request for part {part_number}"
+                )
+            elif "ice" in query.lower() or "icemaker" in query.lower():
                 return AgentResult(
                     success=True,
                     data={

@@ -88,7 +88,9 @@ class ScopeAgent(BaseAgent):
         cart_indicators = [
             "cart", "add to cart", "shopping cart", "checkout", "purchase",
             "buy", "order", "price", "cost", "total", "payment", "shipping",
-            "quantity", "remove", "clear cart", "view cart", "proceed to checkout"
+            "quantity", "remove", "clear cart", "view cart", "proceed to checkout",
+            # Confirmation words for purchase/cart context
+            "yes", "y", "ok", "okay", "proceed", "go ahead", "confirm", "add it"
         ]
 
         # 3. Check for part usage/installation related content

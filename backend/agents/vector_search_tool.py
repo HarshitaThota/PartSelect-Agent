@@ -188,13 +188,13 @@ class VectorSearchTool:
             print(f"❌ Error in semantic search: {e}")
             return []
 
-    async def hybrid_search(self, query: str, traditional_results: List[Dict], top_k: int = 5) -> List[Dict]:
+    async def hybrid_search(self, query: str, traditional_results: List[Dict], top_k: int = 5, filters: Dict = None) -> List[Dict]:
         """Combine traditional and semantic search results"""
         if not self.is_available():
             return traditional_results
 
-        # Get semantic results
-        semantic_results = await self.semantic_search(query, top_k)
+        # Get semantic results with filters
+        semantic_results = await self.semantic_search(query, top_k, filters)
 
         # Merge results, avoiding duplicates
         seen_parts = set()

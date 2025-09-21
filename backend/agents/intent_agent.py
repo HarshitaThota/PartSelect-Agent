@@ -57,7 +57,17 @@ class IntentAgent(BaseAgent):
                 r"won't\s+work",
                 r"not\s+functioning",
                 r"making\s+noise",
-                r"leaking"
+                r"leaking",
+                r"common.*problems?",
+                r"what.*problems?",
+                r"what.*issues?",
+                r"problems?\s+with",
+                r"issues?\s+with",
+                r"what.*wrong",
+                r"what.*can.*go.*wrong",
+                r"typical.*problems?",
+                r"frequent.*problems?",
+                r"usual.*problems?"
             ],
             "product_search": [
                 r"need.*filter",
@@ -81,6 +91,17 @@ class IntentAgent(BaseAgent):
                 r"want\s+to\s+order",
                 r"want\s+to\s+purchase"
             ],
+            "purchase_confirmation": [
+                r"^yes$",
+                r"^y$",
+                r"^ok$",
+                r"^okay$",
+                r"proceed",
+                r"go\s+ahead",
+                r"confirm",
+                r"add\s+it",
+                r"add\s+to\s+cart"
+            ],
             "pricing_inquiry": [
                 r"price",
                 r"cost",
@@ -92,7 +113,11 @@ class IntentAgent(BaseAgent):
                 r"cart",
                 r"checkout",
                 r"view\s+cart",
-                r"shopping\s+cart"
+                r"shopping\s+cart",
+                r"add.*cart",
+                r"add\s+it",
+                r"yes.*add",
+                r"proceed.*add"
             ],
             "ordering_info": [
                 r"in\s+stock",
@@ -155,11 +180,16 @@ class IntentAgent(BaseAgent):
                 confidence = intent_scores[primary_intent]
 
             # Special case: if we found a part number, it's likely a part lookup
+            # BUT respect purchase/transaction intent if those keywords are present
             if entities.get("part_numbers"):
                 if "install" in query_lower or "how to" in query_lower:
                     primary_intent = "installation_help"
                 elif "compatible" in query_lower or "fit" in query_lower:
                     primary_intent = "compatibility_check"
+                elif any(keyword in query_lower for keyword in ["buy", "purchase", "order", "want to buy", "want to purchase", "want to order", "add to cart"]):
+                    # Keep purchase intent if purchase keywords are present
+                    if primary_intent not in ["purchase_intent", "cart_operations"]:
+                        primary_intent = "purchase_intent"
                 else:
                     primary_intent = "part_lookup"
                 confidence = max(confidence, 0.8)

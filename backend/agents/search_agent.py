@@ -17,6 +17,8 @@ class SearchAgent(BaseAgent):
 
     async def process(self, query: str, context: Dict[str, Any] = None) -> AgentResult:
         """Process search queries and return relevant parts"""
+        print(f"🔍 Search agent processing query: {query}")
+        print(f"🔍 Search agent context: {context}")
         try:
             # Extract search parameters from context
             intent_data = context or {}
@@ -28,11 +30,17 @@ class SearchAgent(BaseAgent):
             # If we have specific part numbers, get those directly
             part_numbers = entities.get("part_numbers", [])
             if part_numbers:
+                print(f"🔍 Direct lookup for part numbers: {part_numbers}")
                 parts = []
                 for part_number in part_numbers:
+                    print(f"🔍 Looking up part: {part_number}")
                     part_details = await self.call_tool("get_part_details", part_number=part_number)
+                    print(f"🔍 Part details result: {part_details}")
                     if part_details and "error" not in part_details:
+                        print(f"🔍 Adding part to results: {part_details.get('partselect_number', 'unknown')}")
                         parts.append(part_details)
+                    else:
+                        print(f"🔍 Part details failed validation: part_details={bool(part_details)}, has_error={'error' in (part_details or {})}")
                 tools_used.append("get_part_details")
 
                 if parts:
@@ -78,13 +86,16 @@ class SearchAgent(BaseAgent):
                     )
 
             # General text search
+            print(f"🔍 Calling search_parts with params: {search_params}")
             search_results = await self.call_tool(
                 "search_parts",
                 query=search_params["query"],
                 category=search_params.get("category"),
                 appliance_type=search_params.get("appliance_type"),
+                brand=search_params.get("brand"),
                 limit=10
             )
+            print(f"🔍 Search results: {len(search_results) if isinstance(search_results, list) else 'error'}")
             tools_used.append("search_parts")
 
             if "error" in search_results:
