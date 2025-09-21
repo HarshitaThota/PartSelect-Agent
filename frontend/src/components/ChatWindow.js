@@ -12,6 +12,7 @@ function ChatWindow() {
 
   const [messages,setMessages] = useState(defaultMessage)
   const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const messagesEndRef = useRef(null);
 
@@ -24,14 +25,16 @@ function ChatWindow() {
   }, [messages]);
 
   const handleSend = async (input) => {
-    if (input.trim() !== "") {
+    if (input.trim() !== "" && !isLoading) {
       // Set user message
       setMessages(prevMessages => [...prevMessages, { role: "user", content: input }]);
       setInput("");
+      setIsLoading(true);
 
       // Call API & set assistant message
       const newMessage = await getAIMessage(input);
       setMessages(prevMessages => [...prevMessages, newMessage]);
+      setIsLoading(false);
     }
   };
 
@@ -46,6 +49,17 @@ function ChatWindow() {
                   )}
               </div>
           ))}
+          {isLoading && (
+            <div className="assistant-message-container">
+              <div className="message assistant-message loading-message">
+                <div className="typing-indicator">
+                  <div className="typing-dot"></div>
+                  <div className="typing-dot"></div>
+                  <div className="typing-dot"></div>
+                </div>
+              </div>
+            </div>
+          )}
           <div ref={messagesEndRef} />
           <div className="input-area">
             <input
@@ -60,8 +74,12 @@ function ChatWindow() {
               }}
               rows="3"
             />
-            <button className="send-button" onClick={handleSend}>
-              Send
+            <button
+              className="send-button"
+              onClick={() => handleSend(input)}
+              disabled={isLoading}
+            >
+              {isLoading ? "Thinking..." : "Send"}
             </button>
           </div>
       </div>
