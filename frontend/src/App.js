@@ -107,6 +107,13 @@ function App() {
             <span className="tagline">AI Chat Assistant</span>
           </div>
           <div className="header-right">
+            <div className="customer-service">
+              <div className="service-info">
+                <div className="service-phone">📞 1-866-319-8402</div>
+                <div className="service-hours">Mon-Sat 8am-8pm EST</div>
+                <div className="service-email">📧 customerservice@partselect.com</div>
+              </div>
+            </div>
             <div className="cart-section">
               <button
                 className="cart-btn"
