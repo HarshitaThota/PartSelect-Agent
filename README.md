@@ -1,138 +1,198 @@
-# PartSelect Agent
+# PartSelect AI Chat Agent
 
-An AI-powered chat agent for PartSelect e-commerce, specializing in refrigerator and dishwasher parts.
+An intelligent AI-powered chat assistant for PartSelect, specializing in refrigerator and dishwasher parts with advanced agentic architecture.
 
-## Features
-- 🔍 **Smart Search**: Semantic search across 80+ appliance parts
-- 🔧 **Installation Guidance**: Step-by-step repair instructions
-- ✅ **Compatibility Checking**: Model number validation
-- 🛠️ **Troubleshooting**: Symptom-based part recommendations
-- 🎯 **Scope Enforcement**: Focused only on refrigerator/dishwasher parts
-- 💬 **Multi-turn Conversations**: Context-aware chat experience
+## 🌟 Features
+- 🔍 **Smart Part Search**: Semantic search across 27 authentic PartSelect parts
+- 🔧 **Installation Guidance**: Step-by-step repair instructions with difficulty ratings
+- ✅ **Compatibility Checking**: Model number validation and part fitment
+- 🛠️ **Troubleshooting**: Symptom-based part recommendations and fixes
+- 🎯 **Scope Enforcement**: Focused exclusively on refrigerator/dishwasher parts
+- 💬 **Multi-turn Conversations**: Context-aware conversational experience
+- 🤖 **6-Agent Architecture**: Specialized AI agents for different tasks
 
-## Architecture
-- **Frontend**: React + modern chat UI
-- **Backend**: FastAPI + RAG pipeline
-- **AI**: Deepseek LLM integration
-- **Vector Search**: Pinecone + sentence-transformers
-- **Data**: 80 realistic appliance parts with full metadata
+## 🏗️ Architecture
 
-## Quick Start with Docker 🐳
+### Multi-Agent System
+- **Intent Agent**: Classifies user queries and determines routing
+- **Search Agent**: Handles part lookup and product discovery
+- **Compatibility Agent**: Validates part-to-model compatibility
+- **Installation Agent**: Provides repair guidance and instructions
+- **Troubleshooting Agent**: Diagnoses issues and recommends solutions
+- **Response Agent**: Orchestrates final responses with proper formatting
 
-### Prerequisites
-- Docker and Docker Compose installed
-- (Optional) API keys for Deepseek, Pinecone, OpenAI
+### Technology Stack
+- **Frontend**: React with PartSelect-branded UI design
+- **Backend**: FastAPI with agentic orchestration
+- **AI**: Deepseek LLM integration with fallback responses
+- **Data**: 27 authentic PartSelect parts (19 refrigerator + 8 dishwasher)
 
-### 1. Clone and Setup
+## 🚀 Quick Start
+
+### Option 1: Docker (Recommended)
 ```bash
-git clone https://github.com/HarshitaThota/PartSelect-Agent.git
-cd PartSelect-Agent
-```
+# Clone the repository
+git clone <your-repo-url>
+cd case-study
 
-### 2. Configure Environment (Optional)
-```bash
-cp .env.example .env
-# Edit .env with your API keys (or use demo mode)
-```
-
-### 3. Start the Application
-```bash
+# Start with Docker
 docker-compose up --build
+
+# Access the application
+# Frontend: http://localhost:3000
+# Backend API: http://localhost:8000
 ```
 
-### 4. Access the Chat
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8000
-- API Docs: http://localhost:8000/docs
-
-## Demo Mode
-The application works without API keys using:
-- Local vector search (fallback from Pinecone)
-- Template responses (fallback from Deepseek)
-- 80 pre-generated appliance parts
-
-## Example Queries
-Try these in the chat interface:
-
-**Installation Help:**
-- "How can I install part number PS11752778?"
-- "What tools do I need for ice maker installation?"
-
-**Compatibility:**
-- "Is this part compatible with my WDT780SAEM1 model?"
-- "Will PS12364199 fit my Frigidaire dishwasher?"
-
-**Troubleshooting:**
-- "The ice maker on my Whirlpool fridge is not working"
-- "My dishwasher door won't close properly"
-
-**Product Search:**
-- "I need a water filter for my refrigerator"
-- "Show me door seals for Frigidaire"
-
-## Development Setup
-
-### Local Development (without Docker)
-
-**Frontend:**
+### Option 2: Local Development
 ```bash
+# Backend
+cd backend
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+# Frontend (new terminal)
 cd frontend
 npm install
 npm start
 ```
 
-**Backend:**
-```bash
-cd backend
-pip install -r requirements.txt
-uvicorn main:app --reload
+## 📁 Project Structure
+```
+case-study/
+├── backend/                    # FastAPI backend
+│   ├── agents/                # Multi-agent system
+│   │   ├── agent_orchestrator.py  # Main orchestrator
+│   │   ├── intent_agent.py        # Query classification
+│   │   ├── search_agent.py        # Part search & discovery
+│   │   ├── compatibility_agent.py # Model compatibility
+│   │   ├── installation_agent.py  # Repair guidance
+│   │   ├── troubleshooting_agent.py # Issue diagnosis
+│   │   ├── response_agent.py      # Response formatting
+│   │   ├── tools.py               # Shared utilities
+│   │   └── base_agent.py          # Agent base class
+│   ├── main.py                # FastAPI app entry point
+│   ├── models.py              # Pydantic data models
+│   ├── requirements.txt       # Python dependencies
+│   └── Dockerfile            # Backend container config
+│
+├── frontend/                   # React frontend
+│   ├── src/
+│   │   ├── components/
+│   │   │   └── ChatWindow.js      # Main chat interface
+│   │   ├── api/
+│   │   │   └── api.js             # Backend API calls
+│   │   ├── App.js                 # Main React component
+│   │   └── index.js               # React entry point
+│   ├── package.json           # Node dependencies
+│   └── Dockerfile            # Frontend container config
+│
+├── data/                      # Parts dataset
+│   ├── refrigerator_parts.json   # 19 authentic parts
+│   └── dishwasher_parts.json     # 8 authentic parts
+│
+├── docker-compose.yml         # Container orchestration
+├── .env.example              # Environment variables template
+└── README.md                 # This file
 ```
 
-**Generate Fresh Data:**
-```bash
-cd scraper
-python3 mock_data_generator.py
-```
+## 🗃️ Data Overview
+- **Total Parts**: 27 authentic PartSelect parts
+- **Refrigerator Parts**: 19 (ice dispensers, filters, door components)
+- **Dishwasher Parts**: 8 (spray arms, heating elements, gaskets)
+- **Part Details**: Full metadata including prices, compatibility, installation guides
 
-## Project Structure
-```
-├── frontend/          # React chat interface
-├── backend/           # FastAPI + RAG engine
-├── scraper/           # Data generation scripts
-│   └── data/         # Parts dataset
-├── docker-compose.yml # Container orchestration
-└── README.md
-```
+## 💬 Example Queries
 
-## API Endpoints
+### Installation Help
+- "How can I install part number PS11752778?"
+- "What tools do I need for ice maker installation?"
+- "Show me installation steps for dishwasher door gasket"
+
+### Compatibility Check
+- "Is PS11752778 compatible with my Whirlpool refrigerator?"
+- "Will this part fit my model WDT780SAEM1?"
+- "Can I use PS12364199 in my Frigidaire dishwasher?"
+
+### Troubleshooting
+- "My ice maker is not working"
+- "Dishwasher door won't close properly"
+- "Water dispenser is leaking"
+
+### Product Search
+- "I need a water filter for my refrigerator"
+- "Show me door seals for Frigidaire"
+- "Find dishwasher spray arms"
+
+## 🛠️ API Endpoints
 - `POST /chat` - Main chat interface
-- `GET /parts/search` - Search parts
-- `GET /parts/{part_number}` - Get part details
-- `POST /compatibility/check` - Check compatibility
 - `GET /health` - System health check
+- `GET /docs` - Interactive API documentation
 
-## Technology Stack
-- **Frontend**: React, CSS3, Modern chat UI
-- **Backend**: FastAPI, Pydantic, asyncio
-- **AI/ML**: Deepseek LLM, sentence-transformers
-- **Vector DB**: Pinecone (with local fallback)
-- **Data**: 80 realistic parts with full metadata
-- **Infrastructure**: Docker, Docker Compose
+## 🌐 Environment Variables
+Create a `.env` file (optional - works without keys):
+```bash
+DEEPSEEK_API_KEY=your_deepseek_key  # Optional: Uses fallback if not provided
+```
+
+## 🧪 Agent System Details
+
+### Intent Classification
+- **part_lookup**: Direct part number searches
+- **product_search**: Category and feature-based searches
+- **compatibility_check**: Model compatibility validation
+- **installation_help**: Repair and installation guidance
+- **troubleshooting**: Problem diagnosis and solutions
+- **general_info**: General appliance questions
+- **out_of_scope**: Non-appliance queries (redirected)
+
+### Tool Integration
+Each agent has access to specialized tools:
+- **search_parts()**: Semantic part search
+- **get_parts_by_category()**: Category filtering
+- **check_compatibility()**: Model validation
+- **get_installation_guide()**: Repair instructions
+- **diagnose_issue()**: Problem identification
+
+## 🎨 UI Features
+- **PartSelect Branding**: Authentic color scheme and typography
+- **Real-time Chat**: Instant responses with typing indicators
+- **Responsive Design**: Works on desktop and mobile
+- **Clean Interface**: Focused on part assistance
+
+## 🚢 Deployment
+The application is fully containerized and production-ready:
+- **Multi-stage Docker builds** for optimization
+- **Health checks** for reliability
+- **Volume persistence** for data
+- **Environment-based configuration**
 
 ---
 
-*Instalily AI Case Study Submission*
+## 📋 Case Study Information
+**Project**: Instalily AI PartSelect Chat Agent
 **Candidate**: Harshita Thota
-**Deadline**: September 22, 2025
+**Timeline**: 2-day implementation
+**Date**: September 2025
 
-## Features Implemented ✅
+### ✅ Requirements Completed
 - [x] React-based chat interface with PartSelect styling
-- [x] RAG pipeline with vector search
-- [x] Deepseek LLM integration
+- [x] Multi-agent backend architecture (6 specialized agents)
+- [x] Deepseek LLM integration with intelligent fallbacks
 - [x] Scope enforcement (refrigerator/dishwasher only)
-- [x] Part compatibility checking
-- [x] Installation guidance system
-- [x] Troubleshooting recommendations
+- [x] Part compatibility checking and validation
+- [x] Installation guidance with step-by-step instructions
+- [x] Troubleshooting and issue diagnosis
 - [x] Dockerized full-stack deployment
-- [x] Comprehensive dataset with 80 parts
+- [x] Authentic PartSelect dataset (27 parts)
 - [x] Multi-turn conversation support
+- [x] Production-ready configuration
+
+### 🏆 Key Achievements
+- **Advanced Agent Architecture**: 6 specialized AI agents working in concert
+- **Authentic Data**: Real PartSelect parts with complete metadata
+- **Production Quality**: Full Docker deployment with health checks
+- **User Experience**: Beautiful PartSelect-branded interface
+- **Robust Fallbacks**: Works with or without external API keys
+- **Comprehensive Coverage**: All major appliance part scenarios handled
