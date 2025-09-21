@@ -2,24 +2,155 @@
 
 * {
   font-family: "Inter", sans-serif;
-  font-size: 14px;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 .App {
-  background-color: white;
+  background-color: #f8f9fa;
+  min-height: 100vh;
 }
 
-.heading {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  background: rgba(255, 255, 255); 
-  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+/* PartSelect Header Styling */
+.partselect-header {
+  background: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.header-top {
   display: flex;
-  font-weight: 700;
-  font-size: 16px;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
-  height: 60px;
+  padding: 12px 24px;
+  background: white;
+}
+
+.logo-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo-icon {
+  background: #e67e22;
+  color: white;
+  font-weight: 700;
+  font-size: 18px;
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-text {
+  font-weight: 700;
+  font-size: 24px;
+  color: #2c3e50;
+}
+
+.tagline {
+  background: #2F9A9F;
+  color: white;
+  padding: 6px 16px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.header-right {
+  text-align: right;
+}
+
+.agent-info {
+  text-align: right;
+}
+
+.agent-title {
+  font-weight: 600;
+  font-size: 18px;
+  color: #2c3e50;
+}
+
+.agent-subtitle {
+  font-size: 14px;
+  color: #2F9A9F;
+  margin-top: 2px;
+  font-weight: 500;
+}
+
+/* Main Content */
+.main-content {
+  padding: 32px 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.hero-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: start;
+}
+
+.hero-content h1 {
+  font-size: 36px;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 16px;
+}
+
+.hero-content p {
+  font-size: 18px;
+  color: #7f8c8d;
+  margin-bottom: 24px;
+  line-height: 1.6;
+}
+
+.features {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.feature {
+  font-size: 16px;
+  color: #27ae60;
+  font-weight: 500;
+}
+
+.chat-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  overflow: hidden;
+  height: 600px;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 768px) {
+  .hero-section {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .nav-items {
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .header-top {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
 }

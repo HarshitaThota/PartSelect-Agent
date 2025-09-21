@@ -7,7 +7,7 @@ function ChatWindow() {
 
   const defaultMessage = [{
     role: "assistant",
-    content: "Hi, how can I help you today?"
+    content: "👋 Hi! I'm your PartSelect AI assistant. I can help you find refrigerator and dishwasher parts, check compatibility, provide installation guides, and troubleshoot issues. What can I help you with today?"
   }];
 
   const [messages,setMessages] = useState(defaultMessage)
@@ -39,40 +39,47 @@ function ChatWindow() {
   };
 
   return (
-      <div className="messages-container">
-          {messages.map((message, index) => (
-              <div key={index} className={`${message.role}-message-container`}>
-                  {message.content && (
-                      <div className={`message ${message.role}-message`}>
-                          <div dangerouslySetInnerHTML={{__html: marked(message.content).replace(/<p>|<\/p>/g, "")}}></div>
-                      </div>
-                  )}
-              </div>
-          ))}
-          {isLoading && (
-            <div className="assistant-message-container">
-              <div className="message assistant-message loading-message">
-                <div className="typing-indicator">
-                  <div className="typing-dot"></div>
-                  <div className="typing-dot"></div>
-                  <div className="typing-dot"></div>
+      <div className="chat-window">
+          <div className="chat-header">
+              <h3>PartSelect AI Assistant</h3>
+              <p>Expert help for refrigerator & dishwasher parts</p>
+          </div>
+
+          <div className="messages-container">
+              {messages.map((message, index) => (
+                  <div key={index} className={`${message.role}-message-container`}>
+                      {message.content && (
+                          <div className={`message ${message.role}-message`}>
+                              <div dangerouslySetInnerHTML={{__html: marked(message.content).replace(/<p>|<\/p>/g, "")}}></div>
+                          </div>
+                      )}
+                  </div>
+              ))}
+              {isLoading && (
+                <div className="assistant-message-container">
+                  <div className="message assistant-message loading-message">
+                    <div className="typing-indicator">
+                      <div className="typing-dot"></div>
+                      <div className="typing-dot"></div>
+                      <div className="typing-dot"></div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
+              )}
+              <div ref={messagesEndRef} />
+          </div>
+
           <div className="input-area">
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Type a message..."
+              placeholder="Ask about parts, installation, compatibility, or troubleshooting..."
               onKeyPress={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   handleSend(input);
                   e.preventDefault();
                 }
               }}
-              rows="3"
             />
             <button
               className="send-button"

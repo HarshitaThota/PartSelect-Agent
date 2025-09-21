@@ -14,16 +14,16 @@ class PartInfo(BaseModel):
     manufacturer_part_number: str
     name: str
     brand: str
-    appliance_type: str
-    category: str
+    appliance_type: Optional[str] = "refrigerator"
+    category: Optional[str] = "general"
     price: float
-    in_stock: bool
-    rating: float
-    review_count: int
-    installation: Dict[str, Any]
-    compatibility: Dict[str, Any]
-    troubleshooting: Dict[str, Any]
-    description: str
+    in_stock: Optional[bool] = True
+    rating: Optional[float] = 5.0
+    review_count: Optional[int] = 0
+    installation: Optional[Dict[str, Any]] = {}
+    compatibility: Optional[Dict[str, Any]] = {}
+    troubleshooting: Optional[Dict[str, Any]] = {}
+    description: Optional[str] = ""
 
 class ChatResponse(BaseModel):
     message: str
