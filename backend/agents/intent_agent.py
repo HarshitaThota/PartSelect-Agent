@@ -1,6 +1,6 @@
 """
 Intent Classification Agent
-Determines what the user wants to do based on their query
+Pretty much determines what the user wants to do based on their query 
 """
 
 import re

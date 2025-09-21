@@ -1,6 +1,6 @@
 """
 Agent Orchestrator
-Coordinates all agents and manages the conversation flow
+Coordinates all agents and manages the conversation flow fr 
 """
 
 import json
@@ -70,6 +70,17 @@ class AgentOrchestrator:
         troubleshooting_agent = self.agents["troubleshooting"]
         troubleshooting_agent.register_tool("troubleshoot_issue", self.tools.troubleshoot_issue, "Troubleshoot issues")
         troubleshooting_agent.register_tool("find_alternative_parts", self.tools.find_alternative_parts, "Find alternative parts")
+
+        # Initialize vector search if available
+        print("🔄 Initializing vector search...")
+        vector_initialized = await self.tools.initialize_vector_search()
+        if vector_initialized:
+            print("✅ Vector search initialized successfully")
+            # Register semantic search tools with search agent
+            search_agent.register_tool("semantic_search", self.tools.semantic_search, "Semantic search for parts")
+            search_agent.register_tool("find_similar_parts", self.tools.find_similar_parts, "Find similar parts")
+        else:
+            print("⚠️ Vector search not available - using traditional search only")
 
         print(f"✅ Initialized {len(self.agents)} agents with tools")
 

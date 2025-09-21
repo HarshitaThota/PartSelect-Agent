@@ -6,60 +6,88 @@ Tools are reusable functions that agents can call to perform specific tasks
 import json
 import re
 from typing import List, Dict, Any, Optional
+from .vector_search_tool import VectorSearchTool
 
 class PartSelectTools:
     """Collection of tools for PartSelect agents"""
 
     def __init__(self, parts_data: List[Dict]):
         self.parts_data = parts_data
+        self.vector_search = VectorSearchTool(parts_data)
 
     async def search_parts(self, query: str, category: str = None,
                           appliance_type: str = None, limit: int = 10) -> List[Dict]:
-        """Search for parts based on query, category, and appliance type"""
+        """Search for parts using hybrid traditional + semantic search"""
         try:
-            results = []
-            query_lower = query.lower()
+            # First, do traditional keyword-based search
+            traditional_results = await self._traditional_search(query, category, appliance_type, limit)
 
-            for part in self.parts_data:
-                score = 0.0
+            # If vector search is available, enhance with semantic search
+            if self.vector_search.is_available():
+                # Build filters for semantic search
+                filters = {}
+                if appliance_type:
+                    filters["appliance_type"] = appliance_type
+                if category:
+                    filters["category"] = category
 
-                # Exact part number match (highest priority)
-                if (part["partselect_number"].lower() in query_lower or
-                    part["manufacturer_part_number"].lower() in query_lower):
-                    score = 1.0
-
-                # Category match
-                elif category and part["category"].lower() == category.lower():
-                    score = 0.9
-
-                # Appliance type match
-                elif appliance_type and part["appliance_type"].lower() == appliance_type.lower():
-                    score = 0.8
-
-                # Name/description keyword match
-                elif any(word in part["name"].lower() for word in query_lower.split()):
-                    score = 0.7
-
-                # Brand match
-                elif any(word in part["brand"].lower() for word in query_lower.split()):
-                    score = 0.6
-
-                # Symptom match
-                symptoms = part.get("troubleshooting", {}).get("symptoms_fixed", [])
-                if any(symptom.lower() in query_lower for symptom in symptoms):
-                    score = 0.8
-
-                if score > 0:
-                    part_copy = part.copy()
-                    part_copy["relevance_score"] = score
-                    results.append(part_copy)
-
-            # Sort by relevance and return top results
-            results.sort(key=lambda x: x["relevance_score"], reverse=True)
-            return results[:limit]
+                # Use hybrid search for better results
+                hybrid_results = await self.vector_search.hybrid_search(
+                    query, traditional_results, limit
+                )
+                print(f"🔍 Hybrid search returned {len(hybrid_results)} results")
+                return hybrid_results
+            else:
+                print("🔍 Using traditional search (vector search not available)")
+                return traditional_results
 
         except Exception as e:
+            print(f"❌ Search error: {e}")
             return [{"error": f"Search failed: {str(e)}"}]
+
+    async def _traditional_search(self, query: str, category: str = None,
+                                 appliance_type: str = None, limit: int = 10) -> List[Dict]:
+        """Traditional keyword-based search"""
+        results = []
+        query_lower = query.lower()
+
+        for part in self.parts_data:
+            score = 0.0
+
+            # Exact part number match (highest priority)
+            if (part["partselect_number"].lower() in query_lower or
+                part["manufacturer_part_number"].lower() in query_lower):
+                score = 1.0
+
+            # Category match
+            elif category and part["category"].lower() == category.lower():
+                score = 0.9
+
+            # Appliance type match
+            elif appliance_type and part["appliance_type"].lower() == appliance_type.lower():
+                score = 0.8
+
+            # Name/description keyword match
+            elif any(word in part["name"].lower() for word in query_lower.split()):
+                score = 0.7
+
+            # Brand match
+            elif any(word in part["brand"].lower() for word in query_lower.split()):
+                score = 0.6
+
+            # Symptom match
+            symptoms = part.get("troubleshooting", {}).get("symptoms_fixed", [])
+            if any(symptom.lower() in query_lower for symptom in symptoms):
+                score = 0.8
+
+            if score > 0:
+                part_copy = part.copy()
+                part_copy["relevance_score"] = score
+                results.append(part_copy)
+
+        # Sort by relevance and return top results
+        results.sort(key=lambda x: x["relevance_score"], reverse=True)
+        return results[:limit]
 
     async def get_part_details(self, part_number: str) -> Optional[Dict]:
         """Get detailed information about a specific part"""
@@ -236,3 +264,34 @@ class PartSelectTools:
 
         except Exception as e:
             return [{"error": f"Failed to get parts by category: {str(e)}"}]
+
+    async def semantic_search(self, query: str, top_k: int = 5) -> List[Dict]:
+        """Perform semantic search using vector embeddings"""
+        if not self.vector_search.is_available():
+            print("🔍 Semantic search not available, falling back to traditional search")
+            return await self._traditional_search(query, limit=top_k)
+
+        return await self.vector_search.semantic_search(query, top_k)
+
+    async def find_similar_parts(self, part_number: str, top_k: int = 3) -> List[Dict]:
+        """Find parts similar to a given part using semantic similarity"""
+        if not self.vector_search.is_available():
+            # Fallback to category-based similarity
+            part = await self.get_part_details(part_number)
+            if part and "error" not in part:
+                return await self.get_parts_by_category(
+                    part.get("category", ""),
+                    part.get("appliance_type", ""),
+                    top_k
+                )
+            return []
+
+        return await self.vector_search.find_similar_parts(part_number, top_k)
+
+    async def initialize_vector_search(self) -> bool:
+        """Initialize the vector search index"""
+        if not self.vector_search.is_available():
+            print("⚠️ Cannot initialize vector search - missing API keys")
+            return False
+
+        return await self.vector_search.initialize_index()

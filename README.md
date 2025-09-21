@@ -133,8 +133,37 @@ case-study/
 ## 🌐 Environment Variables
 Create a `.env` file (optional - works without keys):
 ```bash
+# AI/LLM Integration
 DEEPSEEK_API_KEY=your_deepseek_key  # Optional: Uses fallback if not provided
+OPENAI_API_KEY=your_openai_key     # Optional: Required for vector search
+
+# Vector Search (Optional but Recommended)
+PINECONE_API_KEY=your_pinecone_key
+PINECONE_INDEX_NAME=partselect-parts
 ```
+
+### 🔍 Vector Search Setup (Optional)
+For enhanced semantic search capabilities:
+
+1. **Get API Keys:**
+   - OpenAI API key from https://platform.openai.com/
+   - Pinecone API key from https://www.pinecone.io/
+
+2. **Setup Pinecone Index:**
+   ```bash
+   # Set environment variables
+   export PINECONE_API_KEY="your-pinecone-key"
+   export OPENAI_API_KEY="your-openai-key"
+
+   # Run setup script
+   python setup_pinecone.py
+   ```
+
+3. **Benefits:**
+   - **Semantic Search**: "water filter" finds filtration systems, ice maker filters
+   - **Natural Language**: "plastic thing that holds ice" finds ice maker bins
+   - **Better Discovery**: Understanding symptoms and part relationships
+   - **Hybrid Results**: Combines keyword + semantic search for best results
 
 ## 🧪 Agent System Details
 

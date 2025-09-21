@@ -44,11 +44,45 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    return {
+    """Enhanced health check with model and service status"""
+    health_data = {
         "status": "healthy",
         "agent_orchestrator": agent_orchestrator is not None,
-        "agents_loaded": len(agent_orchestrator.agents) if agent_orchestrator else 0
+        "agents_loaded": len(agent_orchestrator.agents) if agent_orchestrator else 0,
+        "services": {}
     }
+
+    if agent_orchestrator:
+        # Check Deepseek model status
+        response_agent = agent_orchestrator.agents.get("response")
+        if response_agent:
+            deepseek_key = response_agent.deepseek_api_key
+            health_data["services"]["deepseek"] = {
+                "configured": bool(deepseek_key and deepseek_key != "demo_key"),
+                "model": "deepseek-chat",
+                "api_url": "https://api.deepseek.com/v1",
+                "status": "active" if deepseek_key and deepseek_key != "demo_key" else "fallback"
+            }
+
+        # Check Vector Search status
+        if hasattr(agent_orchestrator, 'tools') and agent_orchestrator.tools:
+            vector_available = agent_orchestrator.tools.vector_search.is_available()
+            health_data["services"]["vector_search"] = {
+                "configured": vector_available,
+                "pinecone_index": os.getenv("PINECONE_INDEX_NAME", "partselect-parts"),
+                "openai_model": "text-embedding-3-small",
+                "dimensions": 512,
+                "status": "active" if vector_available else "disabled"
+            }
+
+        # Check parts data
+        parts_count = len(agent_orchestrator.parts_data) if hasattr(agent_orchestrator, 'parts_data') else 0
+        health_data["services"]["parts_data"] = {
+            "total_parts": parts_count,
+            "status": "loaded" if parts_count > 0 else "empty"
+        }
+
+    return health_data
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat_endpoint(request: ChatRequest):

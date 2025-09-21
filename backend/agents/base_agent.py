@@ -3,7 +3,7 @@ from typing import Dict, List, Any, Optional
 import json
 
 class BaseAgent(ABC):
-    """Base class for all agents in the system"""
+    """Base class for all agents in the system hehe"""
 
     def __init__(self, name: str, description: str):
         self.name = name

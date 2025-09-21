@@ -1,13 +1,13 @@
 """
 Compatibility Agent
-Handles part compatibility checking with appliance models
+Handles part compatibility checking with appliance models 
 """
 
 from typing import Dict, Any, List
 from .base_agent import BaseAgent, AgentResult
 
 class CompatibilityAgent(BaseAgent):
-    """Agent specialized in checking part compatibility"""
+    """Agent specialized in checking part compatibility -- is it a match? """
 
     def __init__(self):
         super().__init__(

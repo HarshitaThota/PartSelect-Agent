@@ -23,6 +23,9 @@ services:
       - "8000:8000"
     environment:
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-demo_key}
+      - PINECONE_API_KEY=${PINECONE_API_KEY:-your_pinecone_key_here}
+      - PINECONE_INDEX_NAME=${PINECONE_INDEX_NAME:-partselect-parts}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-your_openai_key_here}
     volumes:
       - ./backend:/app
       - ./data:/app/data

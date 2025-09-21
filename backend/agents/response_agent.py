@@ -1,6 +1,6 @@
 """
 Response Agent
-Generates natural language responses using Deepseek LLM
+Generates natural language responses using Deepseek LLM cuz yk we need it
 """
 
 import os
@@ -28,10 +28,12 @@ class ResponseAgent(BaseAgent):
 
             # Generate response using Deepseek if available
             if self.deepseek_api_key and self.deepseek_api_key != "demo_key":
+                print(f"🤖 Using Deepseek API for response generation (key: {self.deepseek_api_key[:10]}...)")
                 response_text = await self._generate_deepseek_response(
                     query, intent_data, specialist_result, conversation_history
                 )
             else:
+                print("📝 Using template response (no Deepseek API key)")
                 # Fallback to template responses
                 response_text = self._generate_template_response(
                     query, intent_data, specialist_result
@@ -100,9 +102,11 @@ Please provide a helpful response about the parts query."""
 
                 if response.status_code == 200:
                     result = response.json()
-                    return result["choices"][0]["message"]["content"]
+                    generated_response = result["choices"][0]["message"]["content"]
+                    print(f"✅ Deepseek API success: Generated {len(generated_response)} characters")
+                    return generated_response
                 else:
-                    print(f"Deepseek API error: {response.status_code}")
+                    print(f"❌ Deepseek API error: {response.status_code} - {response.text}")
                     return self._generate_template_response(query, intent_data, specialist_result)
 
         except Exception as e:
