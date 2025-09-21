@@ -67,7 +67,51 @@
 }
 
 .header-right {
-  text-align: right;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+/* Cart Section */
+.cart-section {
+  display: flex;
+  align-items: center;
+}
+
+.cart-btn {
+  position: relative;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.cart-btn:hover {
+  background: #f8f9fa;
+}
+
+.cart-icon {
+  font-size: 24px;
+  display: block;
+}
+
+.cart-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #dc3545;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
 }
 
 .agent-info {
@@ -153,4 +197,80 @@
     gap: 12px;
     text-align: center;
   }
+
+  .header-right {
+    justify-content: center;
+  }
+}
+
+/* Order Confirmation Overlay */
+.order-confirmation-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1001;
+}
+
+.order-confirmation {
+  background: white;
+  border-radius: 12px;
+  padding: 40px;
+  max-width: 500px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.success-icon {
+  font-size: 48px;
+  margin-bottom: 20px;
+}
+
+.order-confirmation h2 {
+  color: #2c3e50;
+  margin-bottom: 12px;
+  font-size: 24px;
+}
+
+.order-confirmation p {
+  color: #6c757d;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.order-details {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px 0;
+  text-align: left;
+}
+
+.order-details p {
+  margin: 8px 0;
+  color: #2c3e50;
+}
+
+.close-confirmation-btn {
+  background: linear-gradient(135deg, #2F9A9F 0%, #34a5aa 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.close-confirmation-btn:hover {
+  background: linear-gradient(135deg, #2a8b90 0%, #2f9299 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(47, 154, 159, 0.3);
 }

@@ -141,6 +141,24 @@ Please provide a helpful response about the parts query."""
         elif intent == "product_search" and parts:
             return f"I found {len(parts)} parts matching your search. Here are the top results with pricing and availability information."
 
+        # Transaction-related intents
+        elif intent in ["cart_operations", "purchase_intent", "pricing_inquiry", "checkout_assistance"]:
+            transaction_type = specialist_result.get("transaction_type", "")
+            message = specialist_result.get("message", "")
+
+            if message:
+                return message
+            elif transaction_type == "cart_add_request":
+                return "I'd be happy to help you add an ice maker part to your cart! Let me show you the available ice maker parts first. You can then click 'Add to Cart' on the one you need."
+            elif intent == "cart_operations":
+                return "I can help you with cart operations. Would you like to view your cart, add items, or proceed to checkout?"
+            elif intent == "purchase_intent":
+                return "I'm ready to help you purchase the parts you need. Please let me know which specific part you'd like to buy."
+            elif intent == "pricing_inquiry":
+                return "I can provide pricing information for any parts you're interested in. Please specify which part you'd like pricing for."
+            elif intent == "checkout_assistance":
+                return "I'm here to help you through the checkout process. Let me guide you through each step."
+
         # Default response
         return "I'm here to help with refrigerator and dishwasher parts. Please let me know what specific part you're looking for, or describe the issue you're experiencing."
 
@@ -151,12 +169,21 @@ Please provide a helpful response about the parts query."""
         # Add intent information
         context_parts.append(f"User intent: {intent_data.get('intent', 'unknown')}")
 
-        # Add parts information
+        # Add parts information with detailed data
         parts = specialist_result.get("parts", [])
         if parts:
             context_parts.append(f"Found {len(parts)} relevant parts:")
-            for i, part in enumerate(parts[:3]):  # Limit to top 3 for context
-                context_parts.append(f"Part {i+1}: {part['name']} (#{part['partselect_number']}) - ${part['price']}")
+            for i, part in enumerate(parts[:2]):  # Limit to top 2 for context
+                part_info = [
+                    f"Part {i+1}: {part['name']} (#{part['partselect_number']}) - ${part['price']}",
+                    f"  Brand: {part.get('brand', 'N/A')}",
+                    f"  Description: {part.get('description', 'No description available')}",
+                    f"  Installation Difficulty: {part.get('installation_difficulty', 'Unknown')}",
+                    f"  Tools Required: {', '.join(part.get('tools_required', [])) if part.get('tools_required') else 'None'}",
+                    f"  Model Compatibility: {', '.join(part.get('model_compatibility', []))[:100]}...",
+                    f"  In Stock: {'Yes' if part.get('in_stock', False) else 'No'}"
+                ]
+                context_parts.extend(part_info)
 
         # Add compatibility results
         compatibility_results = specialist_result.get("compatibility_results", [])

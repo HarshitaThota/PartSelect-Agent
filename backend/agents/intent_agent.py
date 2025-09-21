@@ -6,6 +6,7 @@ Determines what the user wants to do based on their query
 import re
 from typing import Dict, Any, List
 from .base_agent import BaseAgent, AgentResult
+from .scope_agent import ScopeAgent
 
 class IntentAgent(BaseAgent):
     """Agent that classifies user intent from natural language queries"""
@@ -16,6 +17,7 @@ class IntentAgent(BaseAgent):
             description="Classifies user intent from natural language queries"
         )
         self.intent_patterns = self._load_intent_patterns()
+        self.scope_agent = ScopeAgent()
 
     def _load_intent_patterns(self) -> Dict[str, List[str]]:
         """Define patterns for each intent type"""
@@ -66,15 +68,35 @@ class IntentAgent(BaseAgent):
                 r"water\s+filter",
                 r"ice\s+maker",
                 r"door\s+seal",
-                r"parts\s+for"
+                r"parts\s+for",
+                r"add.*ice.*part",
+                r"add.*icemaker"
             ],
-            "ordering_info": [
-                r"price",
-                r"cost",
+            "purchase_intent": [
                 r"buy",
                 r"order",
                 r"purchase",
+                r"add\s+to\s+cart",
+                r"want\s+to\s+buy",
+                r"want\s+to\s+order",
+                r"want\s+to\s+purchase"
+            ],
+            "pricing_inquiry": [
+                r"price",
+                r"cost",
+                r"how\s+much",
+                r"pricing",
+                r"total"
+            ],
+            "cart_operations": [
+                r"cart",
+                r"checkout",
+                r"view\s+cart",
+                r"shopping\s+cart"
+            ],
+            "ordering_info": [
                 r"in\s+stock",
+                r"availability",
                 r"shipping",
                 r"delivery"
             ],
@@ -91,15 +113,16 @@ class IntentAgent(BaseAgent):
         try:
             query_lower = query.lower().strip()
 
-            # Check for out-of-scope queries first
-            if self._is_out_of_scope(query_lower):
+            # Check for out-of-scope queries first using intelligent scope detection
+            scope_result = await self.scope_agent.process(query)
+            if scope_result.success and not scope_result.data.get("is_in_scope", True):
                 return AgentResult(
                     success=True,
                     data={
                         "intent": "out_of_scope",
-                        "confidence": 0.9,
+                        "confidence": scope_result.data.get("confidence", 0.9),
                         "extracted_entities": {},
-                        "reasoning": "Query is outside refrigerator/dishwasher parts scope"
+                        "reasoning": scope_result.data.get("reasoning", "Query is outside refrigerator/dishwasher parts scope")
                     },
                     message="Query identified as out of scope"
                 )
@@ -160,36 +183,6 @@ class IntentAgent(BaseAgent):
                 message=f"Intent classification failed: {str(e)}"
             )
 
-    def _is_out_of_scope(self, query: str) -> bool:
-        """Check if query is outside our scope (refrigerator/dishwasher parts)"""
-        # Scope indicators (in scope)
-        in_scope_keywords = [
-            "refrigerator", "fridge", "dishwasher", "appliance",
-            "part", "filter", "ice maker", "door", "seal", "pump",
-            "motor", "control", "board", "rack", "arm", "valve",
-            "install", "repair", "fix", "compatible", "model"
-        ]
-
-        # Out of scope keywords
-        out_of_scope_keywords = [
-            "weather", "news", "sports", "politics", "car", "phone",
-            "computer", "software", "medicine", "food", "recipe",
-            "movie", "music", "book", "travel"
-        ]
-
-        # Check for part numbers (always in scope)
-        if re.search(r'[A-Z]{2}\d+', query):
-            return False
-
-        # Check for model numbers (always in scope)
-        if re.search(r'[A-Z]{2,4}\d{3,}', query):
-            return False
-
-        # If query contains out-of-scope keywords and no in-scope keywords
-        has_out_of_scope = any(keyword in query for keyword in out_of_scope_keywords)
-        has_in_scope = any(keyword in query for keyword in in_scope_keywords)
-
-        return has_out_of_scope and not has_in_scope
 
     def _extract_entities(self, query: str) -> Dict[str, List[str]]:
         """Extract entities like part numbers, model numbers, etc."""

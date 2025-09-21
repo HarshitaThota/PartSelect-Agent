@@ -6,11 +6,11 @@ import json
 import os
 from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+# Load environment variables from root directory
+load_dotenv("../.env")
 
 # Import our modules
-from models import ChatRequest, ChatResponse, PartInfo
+from models import ChatRequest, ChatResponse, PartInfo, TransactionRequest, TransactionResponse, Cart
 from agents.agent_orchestrator import AgentOrchestrator
 
 app = FastAPI(title="PartSelect Chat Agent API", version="1.0.0")
@@ -63,6 +63,8 @@ async def chat_endpoint(request: ChatRequest):
             conversation_history=request.conversation_history
         )
 
+        print(f"DEBUG: Result from orchestrator: {result}")
+
         # Convert to ChatResponse format
         parts = [PartInfo(**part) for part in result.get("parts", [])]
 
@@ -76,6 +78,8 @@ async def chat_endpoint(request: ChatRequest):
 
     except Exception as e:
         print(f"Error processing chat: {e}")
+        import traceback
+        print(f"Full traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"Error processing request: {str(e)}")
 
 @app.get("/parts/search")
@@ -115,6 +119,54 @@ async def check_compatibility(part_number: str, model_number: str):
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Compatibility check error: {str(e)}")
+
+@app.post("/cart/add")
+async def add_to_cart(request: TransactionRequest):
+    """Add item to cart"""
+    if not agent_orchestrator:
+        raise HTTPException(status_code=500, detail="Agent orchestrator not initialized")
+
+    try:
+        result = await agent_orchestrator.process_transaction(request.dict())
+        return TransactionResponse(**result)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Cart operation failed: {str(e)}")
+
+@app.get("/cart")
+async def get_cart():
+    """Get current cart contents"""
+    if not agent_orchestrator:
+        raise HTTPException(status_code=500, detail="Agent orchestrator not initialized")
+
+    try:
+        cart = agent_orchestrator.get_cart()
+        return cart
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving cart: {str(e)}")
+
+@app.post("/cart/update")
+async def update_cart(request: TransactionRequest):
+    """Update cart item quantities"""
+    if not agent_orchestrator:
+        raise HTTPException(status_code=500, detail="Agent orchestrator not initialized")
+
+    try:
+        result = await agent_orchestrator.process_transaction(request.dict())
+        return TransactionResponse(**result)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Cart update failed: {str(e)}")
+
+@app.delete("/cart/clear")
+async def clear_cart():
+    """Clear all items from cart"""
+    if not agent_orchestrator:
+        raise HTTPException(status_code=500, detail="Agent orchestrator not initialized")
+
+    try:
+        result = await agent_orchestrator.clear_cart()
+        return {"success": True, "message": "Cart cleared successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error clearing cart: {str(e)}")
 
 @app.get("/agents/status")
 async def get_agent_status():

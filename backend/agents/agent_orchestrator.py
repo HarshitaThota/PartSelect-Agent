@@ -12,6 +12,7 @@ from .search_agent import SearchAgent
 from .compatibility_agent import CompatibilityAgent
 from .installation_agent import InstallationAgent
 from .troubleshooting_agent import TroubleshootingAgent
+from .transaction_agent import TransactionAgent
 from .response_agent import ResponseAgent
 from .tools import PartSelectTools
 
@@ -23,6 +24,14 @@ class AgentOrchestrator:
         self.tools = None
         self.parts_data = []
         self.conversation_history = []
+        self.cart = {
+            "items": [],
+            "total_items": 0,
+            "subtotal": 0.0,
+            "shipping_cost": 0.0,
+            "tax": 0.0,
+            "total": 0.0
+        }
 
     async def initialize(self):
         """Initialize all agents and tools"""
@@ -41,6 +50,7 @@ class AgentOrchestrator:
             "compatibility": CompatibilityAgent(),
             "installation": InstallationAgent(),
             "troubleshooting": TroubleshootingAgent(),
+            "transaction": TransactionAgent(),
             "response": ResponseAgent()
         }
 
@@ -167,6 +177,10 @@ class AgentOrchestrator:
                 specialist_result = await self._handle_troubleshooting(query, intent_data)
                 agent_trace.append("troubleshooting")
 
+            elif intent in ["purchase_intent", "cart_operations", "pricing_inquiry", "checkout_assistance"]:
+                specialist_result = await self._handle_transaction(query, intent_data)
+                agent_trace.append("transaction")
+
             else:
                 # General query - route to search
                 specialist_result = await self._handle_search(query, intent_data)
@@ -218,6 +232,140 @@ class AgentOrchestrator:
     async def _handle_troubleshooting(self, query: str, intent_data: Dict) -> AgentResult:
         """Handle troubleshooting queries"""
         return await self.agents["troubleshooting"].process(query, intent_data)
+
+    async def _handle_transaction(self, query: str, intent_data: Dict) -> AgentResult:
+        """Handle transaction-related queries"""
+
+        # Check if this is a cart add request that needs parts
+        if ("add" in query.lower() and
+            any(appliance in query.lower() for appliance in ["refrigerator", "fridge", "dishwasher", "ice"])):
+
+            # Route to search first to get parts, then handle transaction
+            search_query = query.lower()
+            if "refrigerator" in search_query or "fridge" in search_query:
+                search_query = "refrigerator parts"
+            elif "dishwasher" in search_query:
+                search_query = "dishwasher parts"
+            elif "ice" in search_query:
+                search_query = "ice maker parts"
+
+            # Get parts from search agent
+            search_result = await self.agents["search"].process(search_query, intent_data)
+
+            if search_result.success and search_result.data.get("parts"):
+                # Pass parts to transaction agent
+                enhanced_context = intent_data.copy()
+                enhanced_context["specialist_result"] = search_result.data
+                return await self.agents["transaction"].process(query, enhanced_context)
+
+        return await self.agents["transaction"].process(query, intent_data)
+
+    async def process_transaction(self, transaction_data: Dict) -> Dict[str, Any]:
+        """Process cart/transaction operations"""
+        action = transaction_data.get("action")
+        part_number = transaction_data.get("part_number")
+        quantity = transaction_data.get("quantity", 1)
+
+        if action == "add_to_cart":
+            return await self._add_to_cart(part_number, quantity)
+        elif action == "remove_from_cart":
+            return await self._remove_from_cart(part_number)
+        elif action == "update_quantity":
+            return await self._update_cart_quantity(part_number, quantity)
+        elif action == "clear_cart":
+            return await self._clear_cart()
+        else:
+            return {"success": False, "message": "Invalid action"}
+
+    async def _add_to_cart(self, part_number: str, quantity: int) -> Dict[str, Any]:
+        """Add item to cart"""
+        # Find the part
+        part = next((p for p in self.parts_data if p["partselect_number"] == part_number), None)
+        if not part:
+            return {"success": False, "message": "Part not found"}
+
+        # Check if item already in cart
+        existing_item = next((item for item in self.cart["items"] if item["part"]["partselect_number"] == part_number), None)
+
+        if existing_item:
+            existing_item["quantity"] += quantity
+        else:
+            self.cart["items"].append({
+                "part": part,
+                "quantity": quantity,
+                "selected_options": {},
+                "added_date": None
+            })
+
+        self._update_cart_totals()
+        return {
+            "success": True,
+            "message": f"Added {part['name']} to cart",
+            "cart": self.cart
+        }
+
+    async def _remove_from_cart(self, part_number: str) -> Dict[str, Any]:
+        """Remove item from cart"""
+        original_count = len(self.cart["items"])
+        self.cart["items"] = [item for item in self.cart["items"] if item["part"]["partselect_number"] != part_number]
+
+        if len(self.cart["items"]) < original_count:
+            self._update_cart_totals()
+            return {"success": True, "message": "Item removed from cart", "cart": self.cart}
+        else:
+            return {"success": False, "message": "Item not found in cart"}
+
+    async def _update_cart_quantity(self, part_number: str, quantity: int) -> Dict[str, Any]:
+        """Update item quantity in cart"""
+        item = next((item for item in self.cart["items"] if item["part"]["partselect_number"] == part_number), None)
+
+        if item:
+            if quantity <= 0:
+                return await self._remove_from_cart(part_number)
+            else:
+                item["quantity"] = quantity
+                self._update_cart_totals()
+                return {"success": True, "message": "Quantity updated", "cart": self.cart}
+        else:
+            return {"success": False, "message": "Item not found in cart"}
+
+    def _update_cart_totals(self):
+        """Update cart totals"""
+        total_items = sum(item["quantity"] for item in self.cart["items"])
+        subtotal = sum(item["part"]["price"] * item["quantity"] for item in self.cart["items"])
+
+        # Calculate shipping (free over $50)
+        shipping_cost = 0.0 if subtotal >= 50 else 15.99
+
+        # Calculate tax (8.5%)
+        tax = subtotal * 0.085
+
+        # Calculate total
+        total = subtotal + shipping_cost + tax
+
+        self.cart.update({
+            "total_items": total_items,
+            "subtotal": round(subtotal, 2),
+            "shipping_cost": round(shipping_cost, 2),
+            "tax": round(tax, 2),
+            "total": round(total, 2)
+        })
+
+    def get_cart(self) -> Dict[str, Any]:
+        """Get current cart"""
+        return self.cart
+
+    async def clear_cart(self) -> Dict[str, Any]:
+        """Clear cart"""
+        self.cart = {
+            "items": [],
+            "total_items": 0,
+            "subtotal": 0.0,
+            "shipping_cost": 0.0,
+            "tax": 0.0,
+            "total": 0.0
+        }
+        return {"success": True, "message": "Cart cleared"}
 
     def _create_error_response(self, error_message: str) -> Dict[str, Any]:
         """Create a standardized error response"""
