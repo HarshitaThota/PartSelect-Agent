@@ -17,13 +17,14 @@ function ChatWindow({ addToCart, cartItems }) {
 
   const messagesEndRef = useRef(null);
 
-  const scrollToBottom = () => {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-  };
+  // Scroll behavior disabled for demo - keep user at top of new responses
+  // const scrollToBottom = () => {
+  //     messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+  // };
 
-  useEffect(() => {
-      scrollToBottom();
-  }, [messages]);
+  // useEffect(() => {
+  //     scrollToBottom();
+  // }, [messages]);
 
   const handleSend = async (input) => {
     if (input.trim() !== "" && !isLoading) {

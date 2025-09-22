@@ -25,11 +25,13 @@ class VectorSearchTool:
                 self.pc = Pinecone(api_key=self.pinecone_api_key)
                 self.index = self.pc.Index(self.index_name)
             except Exception as e:
+                pass
 
         if self.openai_api_key and self.openai_api_key != "your_openai_key_here":
             try:
                 self.openai_client = OpenAI(api_key=self.openai_api_key)
             except Exception as e:
+                pass
 
     def is_available(self) -> bool:
         return self.pc is not None and self.openai_client is not None
