@@ -22,7 +22,9 @@ class ResponseAgent(BaseAgent):
     async def process(self, query: str, context: Dict[str, Any] = None) -> AgentResult:
         """Generate natural language response based on agent results"""
         try:
-            intent_data = context.get("intent", {})
+            intent_data = context.get("intent", "unknown")
+            if isinstance(intent_data, str):
+                intent_data = {"intent": intent_data}
             specialist_result = context.get("specialist_result", {})
             conversation_history = context.get("conversation_history", [])
 
@@ -48,11 +50,20 @@ class ResponseAgent(BaseAgent):
                     query, intent_data, specialist_result
                 )
 
+            # Extract parts from specialist_result for the final response
+            parts = specialist_result.get("parts", [])
+            if not parts and "part" in specialist_result:
+                parts = [specialist_result["part"]]
+
             return AgentResult(
                 success=True,
                 data={
-                    "formatted_response": response_text,
-                    "response_type": "llm" if self.deepseek_api_key != "demo_key" else "template"
+                    "message": response_text,
+                    "parts": parts,
+                    "query_type": intent_data.get("intent", "general"),
+                    "confidence": specialist_result.get("confidence", 0.5),
+                    "agent_trace": ["scope", "intent", "product", "response"],
+                    "tools_used": specialist_result.get("tools_used", [])
                 },
                 message="Response generated successfully"
             )

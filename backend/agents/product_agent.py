@@ -10,11 +10,12 @@ from .base_agent import BaseAgent, AgentResult
 class ProductAgent(BaseAgent):
     """Agent specialized in all product-related operations"""
 
-    def __init__(self):
+    def __init__(self, tools=None):
         super().__init__(
             name="product_agent",
             description="Handles product search, installation guidance, and compatibility checking"
         )
+        self.tools = tools  # Direct tool access instead of registration
 
     async def process(self, query: str, context: Dict[str, Any] = None) -> AgentResult:
         """Process product-related queries based on intent"""
@@ -55,7 +56,7 @@ class ProductAgent(BaseAgent):
             parts = []
             for part_number in part_numbers:
                 print(f"Looking up part: {part_number}")
-                part_details = await self.call_tool("get_part_details", part_number=part_number)
+                part_details = await self.tools.get_part_details(part_number) if self.tools else None
                 print(f"Part details result: {part_details}")
                 if part_details and "error" not in part_details:
                     print(f"Adding part to results: {part_details.get('partselect_number', 'unknown')}")
@@ -84,12 +85,11 @@ class ProductAgent(BaseAgent):
             parts = []
             for category in categories:
                 appliance_type = appliance_types[0] if appliance_types else None
-                category_parts = await self.call_tool(
-                    "get_parts_by_category",
+                category_parts = await self.tools.get_parts_by_category(
                     category=category,
                     appliance_type=appliance_type,
                     limit=10
-                )
+                ) if self.tools else []
                 if category_parts and "error" not in category_parts:
                     parts.extend(category_parts)
             tools_used.append("get_parts_by_category")
@@ -108,14 +108,13 @@ class ProductAgent(BaseAgent):
 
         # General text search
         print(f"Calling search_parts with params: {search_params}")
-        search_results = await self.call_tool(
-            "search_parts",
+        search_results = await self.tools.search_parts(
             query=search_params["query"],
             category=search_params.get("category"),
             appliance_type=search_params.get("appliance_type"),
             brand=search_params.get("brand"),
             limit=10
-        )
+        ) if self.tools else []
         print(f"Search results: {len(search_results) if isinstance(search_results, list) else 'error'}")
         tools_used.append("search_parts")
 
@@ -148,19 +147,25 @@ class ProductAgent(BaseAgent):
             parts_info = []
 
             for part_number in part_numbers:
+                print(f"Looking up installation for part: {part_number}")
+
                 # Get installation guide
-                guide = await self.call_tool("get_installation_guide", part_number=part_number)
+                guide = await self.tools.get_installation_guide(part_number) if self.tools else {}
                 tools_used.append("get_installation_guide")
 
                 if guide and "error" not in guide:
                     installation_guides.append(guide)
+                    print(f"Found installation guide for: {part_number}")
 
                 # Get part details for context
-                part_details = await self.call_tool("get_part_details", part_number=part_number)
+                part_details = await self.tools.get_part_details(part_number) if self.tools else None
                 tools_used.append("get_part_details")
 
                 if part_details and "error" not in part_details:
                     parts_info.append(part_details)
+                    print(f"Found part details for: {part_number}")
+                else:
+                    print(f"No part details found for: {part_number}")
 
             return AgentResult(
                 success=True,
@@ -196,18 +201,17 @@ class ProductAgent(BaseAgent):
         if part_numbers and model_numbers:
             for part_number in part_numbers:
                 for model_number in model_numbers:
-                    compatibility_result = await self.call_tool(
-                        "check_compatibility",
+                    compatibility_result = await self.tools.check_compatibility(
                         part_number=part_number,
                         model_number=model_number
-                    )
+                    ) if self.tools else {}
                     tools_used.append("check_compatibility")
 
                     if "error" not in compatibility_result:
                         results.append(compatibility_result)
 
                     # Also get part details for context
-                    part_details = await self.call_tool("get_part_details", part_number=part_number)
+                    part_details = await self.tools.get_part_details(part_number) if self.tools else None
                     tools_used.append("get_part_details")
 
             return AgentResult(
@@ -227,7 +231,7 @@ class ProductAgent(BaseAgent):
         elif part_numbers:
             parts_info = []
             for part_number in part_numbers:
-                part_details = await self.call_tool("get_part_details", part_number=part_number)
+                part_details = await self.tools.get_part_details(part_number) if self.tools else None
                 tools_used.append("get_part_details")
 
                 if part_details and "error" not in part_details:

@@ -23,11 +23,11 @@ class IntentAgent(BaseAgent):
         """Define patterns for each intent type"""
         return {
             "part_lookup": [
-                r"part\s+number\s+([A-Z]{2}\d+)",
-                r"([A-Z]{2}\d+)",
-                r"what\s+is\s+([A-Z]{2}\d+)",
-                r"tell\s+me\s+about\s+([A-Z]{2}\d+)",
-                r"details\s+for\s+([A-Z]{2}\d+)"
+                r"part\s+number\s+([A-Z]{2}\s?\d+)",
+                r"([A-Z]{2}\s?\d+)",
+                r"what\s+is\s+([A-Z]{2}\s?\d+)",
+                r"tell\s+me\s+about\s+([A-Z]{2}\s?\d+)",
+                r"details\s+for\s+([A-Z]{2}\s?\d+)"
             ],
             "compatibility_check": [
                 r"compatible\s+with",
@@ -226,9 +226,9 @@ class IntentAgent(BaseAgent):
 
         # Extract part numbers (PS + digits, W + digits, etc.)
         part_patterns = [
-            r'PS\d{8,}',  # PS12364199
-            r'W\d{8,}',   # W10712395
-            r'[A-Z]{2,3}\d{6,}',  # General pattern
+            r'PS\s?\d{8,}',  # PS12364199 or PS 12364199
+            r'W\s?\d{8,}',   # W10712395 or W 10712395
+            r'[A-Z]{2,3}\s?\d{6,}',  # General pattern with optional space
         ]
 
         for pattern in part_patterns:

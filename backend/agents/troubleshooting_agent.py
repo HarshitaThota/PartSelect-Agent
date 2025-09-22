@@ -9,11 +9,12 @@ from .base_agent import BaseAgent, AgentResult
 class TroubleshootingAgent(BaseAgent):
     """Agent specialized in troubleshooting appliance issues"""
 
-    def __init__(self):
+    def __init__(self, tools=None):
         super().__init__(
             name="troubleshooting_agent",
             description="Diagnoses problems and recommends repair solutions"
         )
+        self.tools = tools  # Direct tool access
 
     async def process(self, query: str, context: Dict[str, Any] = None) -> AgentResult:
         """Process troubleshooting queries"""
@@ -48,11 +49,10 @@ class TroubleshootingAgent(BaseAgent):
                 appliance_type = appliance_types[0] if appliance_types else None
 
                 # Find parts that might fix these symptoms
-                potential_solutions = await self.call_tool(
-                    "troubleshoot_issue",
+                potential_solutions = await self.tools.troubleshoot_issue(
                     symptoms=symptoms,
                     appliance_type=appliance_type
-                )
+                ) if self.tools else []
                 tools_used.append("troubleshoot_issue")
 
                 if potential_solutions and "error" not in potential_solutions:

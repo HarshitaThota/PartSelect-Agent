@@ -110,11 +110,21 @@ class PartSelectTools:
         print(f"get_part_details called with: {part_number}")
         print(f"Searching through {len(self.parts_data)} parts")
         try:
+            search_term = part_number.lower().strip()
+
             for i, part in enumerate(self.parts_data):
-                if (part["partselect_number"].lower() == part_number.lower() or
-                    part["manufacturer_part_number"].lower() == part_number.lower()):
+                # Check all searchable numbers (includes original, spaced, and lowercase versions)
+                searchable_numbers = part.get("searchable_numbers", [])
+                if any(num.lower() == search_term for num in searchable_numbers):
                     print(f"Found match at index {i}: {part['partselect_number']}")
                     return part
+
+                # Fallback to original logic
+                if (part["partselect_number"].lower() == search_term or
+                    part["manufacturer_part_number"].lower() == search_term):
+                    print(f"Found match at index {i}: {part['partselect_number']}")
+                    return part
+
             print(f"No match found for {part_number}")
             return None
         except Exception as e:
