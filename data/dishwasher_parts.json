@@ -1,0 +1,352 @@
+{
+  "generated_at": "2025-09-20T23:55:00.000000",
+  "total_parts": 8,
+  "metadata": {
+    "refrigerator_parts": 0,
+    "dishwasher_parts": 8,
+    "brands": [
+      "Whirlpool",
+      "Frigidaire",
+      "GE"
+    ],
+    "categories": [
+      "Lower Dishrack Wheel",
+      "Upper Rack Adjuster",
+      "Lower Dishrack Wheel Assembly",
+      "Lower Spray Arm",
+      "Lower Rack Roller",
+      "Heating Element",
+      "Door Gasket"
+    ]
+  },
+  "parts": [
+    {
+      "partselect_number": " ",
+      "manufacturer_part_number": "W10195416",
+      "name": "Lower Dishrack Wheel",
+      "brand": "Whirlpool",
+      "category": "Lower Dishrack Wheel",
+      "appliance_type": "dishwasher",
+      "description": "OEM gray Dishwasher Lower Dishrack Wheel Assembly is a plastic kit that allows the rack to slide in and out of the dishwasher easily. Measures roughly 3x6 inches.",
+      "price": 33.48,
+      "in_stock": true,
+      "model_compatibility": [
+        "KitchenAid",
+        "Whirlpool",
+        "Maytag",
+        "Kenmore"
+      ],
+      "installation_difficulty": "easy",
+      "symptoms_fixed": [
+        "Not cleaning dishes properly",
+        "Door won't close",
+        "Noisy",
+        "Door latch failure"
+      ],
+      "tools_required": [],
+      "average_rating": 5.0,
+      "review_count": 394,
+      "replaces": [
+        "W10195416V",
+        "W10195416VP"
+      ]
+    },
+    {
+      "partselect_number": "PS10065979",
+      "manufacturer_part_number": "W10712395",
+      "name": "Upper Rack Adjuster Kit - White Wheels, Left and Right Sides",
+      "brand": "Whirlpool",
+      "category": "Upper Rack Adjuster",
+      "appliance_type": "dishwasher",
+      "description": "Authentic Dishwasher Upper Rack Adjuster Kit with white wheels made of plastic and metal components. Comes with all necessary parts for dishwasher rack adjuster. Fits onto dishwasher rack and connects it to track.",
+      "price": 52.29,
+      "in_stock": true,
+      "model_compatibility": [
+        "Kenmore",
+        "Whirlpool",
+        "KitchenAid"
+      ],
+      "installation_difficulty": "easy",
+      "symptoms_fixed": [
+        "Door won't close",
+        "Door latch failure",
+        "Not cleaning dishes properly",
+        "Noisy"
+      ],
+      "tools_required": [
+        "Screwdriver"
+      ],
+      "average_rating": 5.0,
+      "review_count": 705,
+      "replaces": [
+        "AP5957560",
+        "W10250159",
+        "W10350375",
+        "W10712395VP"
+      ],
+      "partselect_number_spaced": "PS 10065979",
+      "searchable_numbers": [
+        "PS10065979",
+        "PS 10065979",
+        "ps10065979",
+        "ps 10065979"
+      ]
+    },
+    {
+      "partselect_number": "PS11750057",
+      "manufacturer_part_number": "WPW10195417",
+      "name": "Lower Dishrack Wheel Assembly",
+      "brand": "Whirlpool",
+      "category": "Lower Dishrack Wheel Assembly",
+      "appliance_type": "dishwasher",
+      "description": "Gray plastic lower dishrack roller attaches to bottom of lower dishrack, allowing it to move in and out smoothly. Assembly includes 2 rollers and bracket that attaches to dishrack.",
+      "price": 46.02,
+      "in_stock": true,
+      "model_compatibility": [
+        "Kenmore",
+        "KitchenAid",
+        "Whirlpool"
+      ],
+      "installation_difficulty": "easy",
+      "symptoms_fixed": [
+        "Door won't close",
+        "Door latch failure",
+        "Not cleaning dishes properly"
+      ],
+      "tools_required": [
+        "Screwdriver"
+      ],
+      "average_rating": 5.0,
+      "review_count": 143,
+      "replaces": [
+        "AP6016764",
+        "W10195417",
+        "WPW10195417VP"
+      ],
+      "partselect_number_spaced": "PS 11750057",
+      "searchable_numbers": [
+        "PS11750057",
+        "PS 11750057",
+        "ps11750057",
+        "ps 11750057"
+      ]
+    },
+    {
+      "partselect_number": "PS12585623",
+      "manufacturer_part_number": "5304517203",
+      "name": "Lower Spray Arm",
+      "brand": "Frigidaire",
+      "category": "Lower Spray Arm",
+      "appliance_type": "dishwasher",
+      "description": "Lower Spray Arm is used in dishwasher to spray water and clean dishes. Located at bottom of dishwasher tub. Made of plastic and metal, comes in gray/blue color.",
+      "price": 40.84,
+      "in_stock": true,
+      "model_compatibility": [
+        "Frigidaire",
+        "Crosley",
+        "Kenmore",
+        "Gibson"
+      ],
+      "installation_difficulty": "easy",
+      "symptoms_fixed": [
+        "Not cleaning dishes properly",
+        "Leaking",
+        "Noisy",
+        "Not draining"
+      ],
+      "tools_required": [
+        "Flathead screwdriver",
+        "Work gloves"
+      ],
+      "average_rating": 5.0,
+      "review_count": 143,
+      "replaces": [
+        "154250801",
+        "154250901",
+        "154281101",
+        "154414101",
+        "154414102",
+        "154568001",
+        "154568002",
+        "5304506526"
+      ],
+      "partselect_number_spaced": "PS 12585623",
+      "searchable_numbers": [
+        "PS12585623",
+        "PS 12585623",
+        "ps12585623",
+        "ps 12585623"
+      ]
+    },
+    {
+      "partselect_number": "PS17137081",
+      "manufacturer_part_number": "WD22X33499",
+      "name": "Lower Spray Arm",
+      "brand": "GE",
+      "category": "Lower Spray Arm",
+      "appliance_type": "dishwasher",
+      "description": "Lower spray arm assembly distributes water and detergent during washing cycle by spinning around and spraying water in different directions. Attached to support or hub at bottom of dishwasher.",
+      "price": 25.88,
+      "in_stock": true,
+      "model_compatibility": [
+        "General Electric",
+        "Hotpoint",
+        "Haier"
+      ],
+      "installation_difficulty": "easy",
+      "symptoms_fixed": [
+        "Not cleaning dishes properly",
+        "Noisy",
+        "Leaking",
+        "Not draining"
+      ],
+      "tools_required": [],
+      "average_rating": 5.0,
+      "review_count": 35,
+      "replaces": [
+        "WD22X10091",
+        "WD22X25962",
+        "WD22X26621",
+        "WD22X27724"
+      ],
+      "partselect_number_spaced": "PS 17137081",
+      "searchable_numbers": [
+        "PS17137081",
+        "PS 17137081",
+        "ps17137081",
+        "ps 17137081"
+      ]
+    },
+    {
+      "partselect_number": "PS16217024",
+      "manufacturer_part_number": "WD12X26146",
+      "name": "Dishwasher Lower Rack Roller",
+      "brand": "GE",
+      "category": "Lower Rack Roller",
+      "appliance_type": "dishwasher",
+      "description": "Lower rack roller is genuine replacement component designed to support smooth and stable movement of dishwasher's bottom rack. Measuring approximately 1.5 inches in diameter, finished in charcoal gray.",
+      "price": 12.91,
+      "in_stock": true,
+      "model_compatibility": [
+        "General Electric",
+        "Hotpoint",
+        "Haier"
+      ],
+      "installation_difficulty": "easy",
+      "symptoms_fixed": [
+        "Rack movement issues"
+      ],
+      "tools_required": [
+        "Protective gloves"
+      ],
+      "average_rating": 5.0,
+      "review_count": 23,
+      "replaces": [
+        "WD12X10435"
+      ],
+      "partselect_number_spaced": "PS 16217024",
+      "searchable_numbers": [
+        "PS16217024",
+        "PS 16217024",
+        "ps16217024",
+        "ps 16217024"
+      ]
+    },
+    {
+      "partselect_number": "PS8260087",
+      "manufacturer_part_number": "W10518394",
+      "name": "Dishwasher Heating Element",
+      "brand": "Whirlpool",
+      "category": "Heating Element",
+      "appliance_type": "dishwasher",
+      "description": "Manufacturer-certified heating element creates heat during dry cycle and increases water temperature during wash cycle portions. Kit includes heater, two heater fasteners. Genuine OEM part.",
+      "price": 43.95,
+      "in_stock": true,
+      "model_compatibility": [
+        "Whirlpool",
+        "Kenmore",
+        "Maytag",
+        "Amana"
+      ],
+      "installation_difficulty": "moderate",
+      "symptoms_fixed": [
+        "Not drying dishes properly",
+        "Not cleaning dishes properly",
+        "Will Not Start",
+        "Leaking"
+      ],
+      "tools_required": [
+        "Screwdriver",
+        "Wrench set",
+        "Multi-meter"
+      ],
+      "average_rating": 5.0,
+      "review_count": 113,
+      "replaces": [
+        "AP5690151",
+        "2977737",
+        "W10518394",
+        "8194250",
+        "8563007",
+        "8563464",
+        "8572861",
+        "W10134009",
+        "W10441445",
+        "W10518394VP"
+      ],
+      "partselect_number_spaced": "PS 8260087",
+      "searchable_numbers": [
+        "PS8260087",
+        "PS 8260087",
+        "ps8260087",
+        "ps 8260087"
+      ]
+    },
+    {
+      "partselect_number": "PS9495545",
+      "manufacturer_part_number": "809006501",
+      "name": "Dishwasher Bottom Door Gasket",
+      "brand": "Frigidaire",
+      "category": "Door Gasket",
+      "appliance_type": "dishwasher",
+      "description": "Dishwasher door gasket helps prevent water from leaking out of bottom edge of dishwasher door by creating watertight seal. Attached to bottom of dishwasher inner door panel. Measures 22.5 inches by 1.25 inches, constructed of plastic, comes in yellow/grey.",
+      "price": 37.84,
+      "in_stock": true,
+      "model_compatibility": [
+        "Frigidaire",
+        "Kenmore",
+        "Crosley",
+        "Gibson"
+      ],
+      "installation_difficulty": "moderate",
+      "symptoms_fixed": [
+        "Leaking",
+        "Not cleaning dishes properly",
+        "Door won't close",
+        "Door latch failure"
+      ],
+      "tools_required": [
+        "Screw drivers",
+        "Pliers"
+      ],
+      "average_rating": 5.0,
+      "review_count": 206,
+      "replaces": [
+        "AP5809675",
+        "154297601",
+        "154297602",
+        "154297603",
+        "154576501",
+        "154588201",
+        "154759101"
+      ],
+      "partselect_number_spaced": "PS 9495545",
+      "searchable_numbers": [
+        "PS9495545",
+        "PS 9495545",
+        "ps9495545",
+        "ps 9495545"
+      ]
+    }
+  ]
+}
