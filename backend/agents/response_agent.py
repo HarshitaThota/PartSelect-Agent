@@ -26,23 +26,23 @@ class ResponseAgent(BaseAgent):
             specialist_result = context.get("specialist_result", {})
             conversation_history = context.get("conversation_history", [])
 
-            print(f"📝 Response agent processing query: {query}")
-            print(f"📝 Intent: {intent_data.get('intent', 'unknown')}")
-            print(f"📝 Specialist result keys: {list(specialist_result.keys())}")
-            print(f"📝 Transaction type: {specialist_result.get('transaction_type', 'N/A')}")
-            print(f"📝 Parts in specialist_result: {len(specialist_result.get('parts', []))}")
-            print(f"📝 Has 'part' key: {'part' in specialist_result}")
+            print(f"Response agent processing query: {query}")
+            print(f"Intent: {intent_data.get('intent', 'unknown')}")
+            print(f"Specialist result keys: {list(specialist_result.keys())}")
+            print(f"Transaction type: {specialist_result.get('transaction_type', 'N/A')}")
+            print(f"Parts in specialist_result: {len(specialist_result.get('parts', []))}")
+            print(f"Has 'part' key: {'part' in specialist_result}")
             if 'part' in specialist_result:
-                print(f"📝 Single part: {specialist_result['part'].get('partselect_number', 'unknown')}")
+                print(f"Single part: {specialist_result['part'].get('partselect_number', 'unknown')}")
 
             # Generate response using Deepseek if available
             if self.deepseek_api_key and self.deepseek_api_key != "demo_key":
-                print(f"🤖 Using Deepseek API for response generation (key: {self.deepseek_api_key[:10]}...)")
+                print(f"Using Deepseek API for response generation (key: {self.deepseek_api_key[:10]}...)")
                 response_text = await self._generate_deepseek_response(
                     query, intent_data, specialist_result, conversation_history
                 )
             else:
-                print("📝 Using template response (no Deepseek API key)")
+                print("Using template response (no Deepseek API key)")
                 # Fallback to template responses
                 response_text = self._generate_template_response(
                     query, intent_data, specialist_result
@@ -112,10 +112,10 @@ Please provide a helpful response about the parts query."""
                 if response.status_code == 200:
                     result = response.json()
                     generated_response = result["choices"][0]["message"]["content"]
-                    print(f"✅ Deepseek API success: Generated {len(generated_response)} characters")
+                    print(f"Deepseek API success: Generated {len(generated_response)} characters")
                     return generated_response
                 else:
-                    print(f"❌ Deepseek API error: {response.status_code} - {response.text}")
+                    print(f"Deepseek API error: {response.status_code} - {response.text}")
                     return self._generate_template_response(query, intent_data, specialist_result)
 
         except Exception as e:
@@ -199,7 +199,7 @@ Please provide a helpful response about the parts query."""
         # For transaction intents, the part might be in a "part" key (singular)
         if not parts and "part" in specialist_result:
             parts = [specialist_result["part"]]
-            print(f"📝 Using singular 'part' from transaction agent: {parts[0].get('partselect_number', 'unknown')}")
+            print(f"Using singular 'part' from transaction agent: {parts[0].get('partselect_number', 'unknown')}")
 
         # Add parts information with detailed data
         if parts:

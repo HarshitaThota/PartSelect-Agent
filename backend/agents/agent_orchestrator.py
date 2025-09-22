@@ -7,10 +7,9 @@ import json
 import os
 from typing import Dict, Any, List
 from .base_agent import BaseAgent, AgentResult
+from .scope_agent import ScopeAgent
 from .intent_agent import IntentAgent
-from .search_agent import SearchAgent
-from .compatibility_agent import CompatibilityAgent
-from .installation_agent import InstallationAgent
+from .product_agent import ProductAgent
 from .troubleshooting_agent import TroubleshootingAgent
 from .transaction_agent import TransactionAgent
 from .response_agent import ResponseAgent
@@ -35,7 +34,7 @@ class AgentOrchestrator:
 
     async def initialize(self):
         """Initialize all agents and tools"""
-        print("🤖 Initializing Agent Orchestrator...")
+        print("Initializing Agent Orchestrator...")
 
         # Load parts data
         await self._load_parts_data()
@@ -45,28 +44,21 @@ class AgentOrchestrator:
 
         # Initialize all agents
         self.agents = {
+            "scope": ScopeAgent(),
             "intent": IntentAgent(),
-            "search": SearchAgent(),
-            "compatibility": CompatibilityAgent(),
-            "installation": InstallationAgent(),
+            "product": ProductAgent(),
             "troubleshooting": TroubleshootingAgent(),
             "transaction": TransactionAgent(),
             "response": ResponseAgent()
         }
 
         # Register tools with agents that need them
-        search_agent = self.agents["search"]
-        search_agent.register_tool("search_parts", self.tools.search_parts, "Search for parts")
-        search_agent.register_tool("get_parts_by_category", self.tools.get_parts_by_category, "Get parts by category")
-        search_agent.register_tool("get_part_details", self.tools.get_part_details, "Get part details")
-
-        compatibility_agent = self.agents["compatibility"]
-        compatibility_agent.register_tool("check_compatibility", self.tools.check_compatibility, "Check part compatibility")
-        compatibility_agent.register_tool("get_part_details", self.tools.get_part_details, "Get part details")
-
-        installation_agent = self.agents["installation"]
-        installation_agent.register_tool("get_installation_guide", self.tools.get_installation_guide, "Get installation guide")
-        installation_agent.register_tool("get_part_details", self.tools.get_part_details, "Get part details")
+        product_agent = self.agents["product"]
+        product_agent.register_tool("search_parts", self.tools.search_parts, "Search for parts")
+        product_agent.register_tool("get_parts_by_category", self.tools.get_parts_by_category, "Get parts by category")
+        product_agent.register_tool("get_part_details", self.tools.get_part_details, "Get part details")
+        product_agent.register_tool("check_compatibility", self.tools.check_compatibility, "Check part compatibility")
+        product_agent.register_tool("get_installation_guide", self.tools.get_installation_guide, "Get installation guide")
 
         troubleshooting_agent = self.agents["troubleshooting"]
         troubleshooting_agent.register_tool("troubleshoot_issue", self.tools.troubleshoot_issue, "Troubleshoot issues")
@@ -107,7 +99,7 @@ class AgentOrchestrator:
                     data = json.load(f)
                     refrigerator_parts = data.get('parts', [])
                     self.parts_data.extend(refrigerator_parts)
-                print(f"📦 Loaded {len(refrigerator_parts)} refrigerator parts from {refrigerator_file}")
+                print(f"Loaded {len(refrigerator_parts)} refrigerator parts from {refrigerator_file}")
 
             # Load dishwasher parts
             dishwasher_paths = [
@@ -127,31 +119,43 @@ class AgentOrchestrator:
                     data = json.load(f)
                     dishwasher_parts = data.get('parts', [])
                     self.parts_data.extend(dishwasher_parts)
-                print(f"📦 Loaded {len(dishwasher_parts)} dishwasher parts from {dishwasher_file}")
+                print(f"Loaded {len(dishwasher_parts)} dishwasher parts from {dishwasher_file}")
 
             if not self.parts_data:
-                print("⚠️ No parts data files found, using empty dataset")
+                print("WARNING: No parts data files found, using empty dataset")
                 print(f"Looked for refrigerator parts in: {refrigerator_paths}")
                 print(f"Looked for dishwasher parts in: {dishwasher_paths}")
 
-            print(f"📊 Total parts loaded: {len(self.parts_data)}")
+            print(f"Total parts loaded: {len(self.parts_data)}")
 
         except Exception as e:
-            print(f"❌ Error loading parts data: {e}")
+            print(f"ERROR: Error loading parts data: {e}")
             self.parts_data = []
 
     async def process_query(self, query: str, conversation_history: List[Dict] = None) -> Dict[str, Any]:
         """Process a user query through the agent pipeline"""
         try:
-            print(f"🎯 Processing query: {query}")
+            print(f"Processing query: {query}")
 
             # Update conversation history
             if conversation_history:
                 self.conversation_history = conversation_history
 
-            # Step 1: Intent Classification
+            # Step 1: Scope Detection (Guardrails)
+            scope_result = await self.agents["scope"].process(query)
+            print(f"Scope check: {'In scope' if scope_result.data.get('is_in_scope') else 'Out of scope'}")
+
+            if not scope_result.data.get("is_in_scope", True):
+                return {
+                    "message": "I can only help with refrigerator and dishwasher parts. Please ask about appliance parts, installation, compatibility, or troubleshooting.",
+                    "parts": [],
+                    "query_type": "out_of_scope",
+                    "agent_trace": ["scope"]
+                }
+
+            # Step 2: Intent Classification
             intent_result = await self.agents["intent"].process(query)
-            print(f"🧠 Intent: {intent_result.data.get('intent')} ({intent_result.data.get('confidence', 0):.1%})")
+            print(f"Intent: {intent_result.data.get('intent')} ({intent_result.data.get('confidence', 0):.1%})")
 
             if not intent_result.success:
                 return self._create_error_response("Intent classification failed")
@@ -168,43 +172,36 @@ class AgentOrchestrator:
                     "agent_trace": ["intent"]
                 }
 
-            # Step 2: Route to appropriate specialist agent
-            agent_trace = ["intent"]
+            # Step 3: Route to appropriate specialist agent
+            agent_trace = ["scope", "intent"]
             specialist_result = None
 
-            print(f"🎯 Routing query with intent: {intent}")
+            print(f"Routing query with intent: {intent}")
 
-            if intent in ["part_lookup", "product_search"]:
-                specialist_result = await self._handle_search(query, intent_data)
-                agent_trace.append("search")
-
-            elif intent == "compatibility_check":
-                specialist_result = await self._handle_compatibility(query, intent_data)
-                agent_trace.append("compatibility")
-
-            elif intent == "installation_help":
-                specialist_result = await self._handle_installation(query, intent_data)
-                agent_trace.append("installation")
+            if intent in ["part_lookup", "product_search", "compatibility_check", "installation_help"]:
+                print(f"Routing to product agent for intent: {intent}")
+                specialist_result = await self._handle_product(query, intent_data)
+                agent_trace.append("product")
 
             elif intent == "troubleshooting":
                 specialist_result = await self._handle_troubleshooting(query, intent_data)
                 agent_trace.append("troubleshooting")
 
             elif intent in ["purchase_intent", "purchase_confirmation", "cart_operations", "pricing_inquiry", "checkout_assistance"]:
-                print(f"🛒 Routing to transaction agent for intent: {intent}")
+                print(f"Routing to transaction agent for intent: {intent}")
                 specialist_result = await self._handle_transaction(query, intent_data)
                 agent_trace.append("transaction")
 
             else:
-                # General query - route to search
-                print(f"🔍 Routing to search agent for unknown intent: {intent}")
-                specialist_result = await self._handle_search(query, intent_data)
-                agent_trace.append("search")
+                # General query - route to product agent as default
+                print(f"Routing to product agent for unknown intent: {intent}")
+                specialist_result = await self._handle_product(query, intent_data)
+                agent_trace.append("product")
 
             if not specialist_result or not specialist_result.success:
                 return self._create_error_response("Specialist agent processing failed")
 
-            # Step 3: Generate response
+            # Step 4: Generate response
             response_result = await self.agents["response"].process(
                 query,
                 {
@@ -218,7 +215,7 @@ class AgentOrchestrator:
             if not response_result.success:
                 return self._create_error_response("Response generation failed")
 
-            # Step 4: Format final response
+            # Step 5: Format final response
             return {
                 "message": response_result.data.get("formatted_response", "I couldn't process your request."),
                 "parts": specialist_result.data.get("parts", []),
@@ -229,20 +226,12 @@ class AgentOrchestrator:
             }
 
         except Exception as e:
-            print(f"❌ Error in orchestrator: {e}")
+            print(f"ERROR: Error in orchestrator: {e}")
             return self._create_error_response(f"Processing error: {str(e)}")
 
-    async def _handle_search(self, query: str, intent_data: Dict) -> AgentResult:
-        """Handle search-related queries"""
-        return await self.agents["search"].process(query, intent_data)
-
-    async def _handle_compatibility(self, query: str, intent_data: Dict) -> AgentResult:
-        """Handle compatibility check queries"""
-        return await self.agents["compatibility"].process(query, intent_data)
-
-    async def _handle_installation(self, query: str, intent_data: Dict) -> AgentResult:
-        """Handle installation help queries"""
-        return await self.agents["installation"].process(query, intent_data)
+    async def _handle_product(self, query: str, intent_data: Dict) -> AgentResult:
+        """Handle all product-related queries (search, compatibility, installation)"""
+        return await self.agents["product"].process(query, intent_data)
 
     async def _handle_troubleshooting(self, query: str, intent_data: Dict) -> AgentResult:
         """Handle troubleshooting queries"""
@@ -250,8 +239,8 @@ class AgentOrchestrator:
 
     async def _handle_transaction(self, query: str, intent_data: Dict) -> AgentResult:
         """Handle transaction-related queries"""
-        print(f"🛒 Orchestrator _handle_transaction called with query: {query}")
-        print(f"🛒 Intent data: {intent_data}")
+        print(f"Orchestrator _handle_transaction called with query: {query}")
+        print(f"Intent data: {intent_data}")
 
         # Check if this is a purchase intent with part number - route to search first
         if intent_data.get("intent") == "purchase_intent":
@@ -259,18 +248,18 @@ class AgentOrchestrator:
             part_numbers = entities.get("part_numbers", [])
 
             if part_numbers:
-                print(f"🛒 Purchase intent with part number {part_numbers[0]}, routing to search first")
-                # Route to search first to find the part
-                search_result = await self.agents["search"].process(query, intent_data)
+                print(f"Purchase intent with part number {part_numbers[0]}, routing to product agent first")
+                # Route to product agent first to find the part
+                search_result = await self.agents["product"].process(query, intent_data)
 
                 if search_result.success and search_result.data.get("parts"):
                     # Pass parts to transaction agent
                     enhanced_context = intent_data.copy()
                     enhanced_context["specialist_result"] = search_result.data
-                    print(f"🛒 Found {len(search_result.data.get('parts', []))} parts, passing to transaction agent")
+                    print(f"Found {len(search_result.data.get('parts', []))} parts, passing to transaction agent")
                     return await self.agents["transaction"].process(query, enhanced_context)
                 else:
-                    print(f"🛒 No parts found in search, continuing with transaction agent anyway")
+                    print(f"No parts found in search, continuing with transaction agent anyway")
                     # No parts found, but still process with transaction agent for proper error handling
                     return await self.agents["transaction"].process(query, intent_data)
 

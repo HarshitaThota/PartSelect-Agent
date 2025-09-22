@@ -28,22 +28,6 @@ An intelligent AI-powered chat assistant for PartSelect, specializing in refrige
 - **Data**: 27 authentic PartSelect parts (19 refrigerator + 8 dishwasher)
 
 ## 🚀 Quick Start
-
-### Option 1: Docker (Recommended)
-```bash
-# Clone the repository
-git clone <your-repo-url>
-cd case-study
-
-# Start with Docker
-docker-compose up --build
-
-# Access the application
-# Frontend: http://localhost:3000
-# Backend API: http://localhost:8000
-```
-
-### Option 2: Local Development
 ```bash
 # Backend
 cd backend
@@ -75,7 +59,6 @@ case-study/
 │   ├── main.py                # FastAPI app entry point
 │   ├── models.py              # Pydantic data models
 │   ├── requirements.txt       # Python dependencies
-│   └── Dockerfile            # Backend container config
 │
 ├── frontend/                   # React frontend
 │   ├── src/
@@ -86,13 +69,11 @@ case-study/
 │   │   ├── App.js                 # Main React component
 │   │   └── index.js               # React entry point
 │   ├── package.json           # Node dependencies
-│   └── Dockerfile            # Frontend container config
 │
 ├── data/                      # Parts dataset
 │   ├── refrigerator_parts.json   # 19 authentic parts
 │   └── dishwasher_parts.json     # 8 authentic parts
 │
-├── docker-compose.yml         # Container orchestration
 ├── .env.example              # Environment variables template
 └── README.md                 # This file
 ```
@@ -191,11 +172,10 @@ Each agent has access to specialized tools:
 - **Clean Interface**: Focused on part assistance
 
 ## 🚢 Deployment
-The application is fully containerized and production-ready:
-- **Multi-stage Docker builds** for optimization
+The application is production-ready with:
 - **Health checks** for reliability
-- **Volume persistence** for data
 - **Environment-based configuration**
+- **Simple local development setup**
 
 ---
 
@@ -213,7 +193,6 @@ The application is fully containerized and production-ready:
 - [x] Part compatibility checking and validation
 - [x] Installation guidance with step-by-step instructions
 - [x] Troubleshooting and issue diagnosis
-- [x] Dockerized full-stack deployment
 - [x] Authentic PartSelect dataset (27 parts)
 - [x] Multi-turn conversation support
 - [x] Production-ready configuration
@@ -221,7 +200,7 @@ The application is fully containerized and production-ready:
 ### 🏆 Key Achievements
 - **Advanced Agent Architecture**: 6 specialized AI agents working in concert
 - **Authentic Data**: Real PartSelect parts with complete metadata
-- **Production Quality**: Full Docker deployment with health checks
+- **Production Quality**: Clean local development with health checks
 - **User Experience**: Beautiful PartSelect-branded interface
 - **Robust Fallbacks**: Works with or without external API keys
 - **Comprehensive Coverage**: All major appliance part scenarios handled

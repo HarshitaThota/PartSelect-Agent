@@ -8,7 +8,7 @@ function ChatWindow({ addToCart, cartItems }) {
 
   const defaultMessage = [{
     role: "assistant",
-    content: "👋 Hi! I'm your PartSelect AI assistant. I can help you find refrigerator and dishwasher parts, check compatibility, provide installation guides, troubleshoot issues, and assist with purchases. What can I help you with today?"
+    content: "Hi! I'm your PartSelect AI assistant. I can help you find refrigerator and dishwasher parts, check compatibility, provide installation guides, troubleshoot issues, and assist with purchases. What can I help you with today?"
   }];
 
   const [messages,setMessages] = useState(defaultMessage)
@@ -65,7 +65,7 @@ function ChatWindow({ addToCart, cartItems }) {
         // Add a success message to the chat
         const successMessage = {
           role: "assistant",
-          content: `✅ Successfully added **${part.name}** to your cart! Would you like to continue shopping or proceed to checkout?`
+          content: `Successfully added **${part.name}** to your cart! Would you like to continue shopping or proceed to checkout?`
         };
         setMessages(prevMessages => [...prevMessages, successMessage]);
       }
@@ -73,7 +73,7 @@ function ChatWindow({ addToCart, cartItems }) {
       console.error('Error adding to cart:', error);
       const errorMessage = {
         role: "assistant",
-        content: `❌ Sorry, I couldn't add ${part.name} to your cart. Please try again.`
+        content: `Sorry, I couldn't add ${part.name} to your cart. Please try again.`
       };
       setMessages(prevMessages => [...prevMessages, errorMessage]);
     }

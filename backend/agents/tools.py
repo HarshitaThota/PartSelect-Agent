@@ -107,18 +107,18 @@ class PartSelectTools:
 
     async def get_part_details(self, part_number: str) -> Optional[Dict]:
         """Get detailed information about a specific part"""
-        print(f"🔧 get_part_details called with: {part_number}")
-        print(f"🔧 Searching through {len(self.parts_data)} parts")
+        print(f"get_part_details called with: {part_number}")
+        print(f"Searching through {len(self.parts_data)} parts")
         try:
             for i, part in enumerate(self.parts_data):
                 if (part["partselect_number"].lower() == part_number.lower() or
                     part["manufacturer_part_number"].lower() == part_number.lower()):
-                    print(f"🔧 Found match at index {i}: {part['partselect_number']}")
+                    print(f"Found match at index {i}: {part['partselect_number']}")
                     return part
-            print(f"🔧 No match found for {part_number}")
+            print(f"No match found for {part_number}")
             return None
         except Exception as e:
-            print(f"🔧 Error in get_part_details: {e}")
+            print(f"Error in get_part_details: {e}")
             return {"error": f"Failed to get part details: {str(e)}"}
 
     async def check_compatibility(self, part_number: str, model_number: str) -> Dict[str, Any]:

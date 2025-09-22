@@ -34,9 +34,9 @@ async def startup_event():
     try:
         agent_orchestrator = AgentOrchestrator()
         await agent_orchestrator.initialize()
-        print("✅ Agent Orchestrator initialized successfully")
+        print("Agent Orchestrator initialized successfully")
     except Exception as e:
-        print(f"❌ Error initializing Agent Orchestrator: {e}")
+        print(f"Error initializing Agent Orchestrator: {e}")
 
 @app.get("/")
 async def root():

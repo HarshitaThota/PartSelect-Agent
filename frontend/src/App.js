@@ -109,9 +109,9 @@ function App() {
           <div className="header-right">
             <div className="customer-service">
               <div className="service-info">
-                <div className="service-phone">📞 1-866-319-8402</div>
+                <div className="service-phone">1-866-319-8402</div>
                 <div className="service-hours">Mon-Sat 8am-8pm EST</div>
-                <div className="service-email">📧 customerservice@partselect.com</div>
+                <div className="service-email">customerservice@partselect.com</div>
               </div>
             </div>
             <div className="cart-section">
@@ -141,9 +141,9 @@ function App() {
             <h1>Ask Our AI Assistant</h1>
             <p>Get instant help finding parts, installation guides, and troubleshooting tips</p>
             <div className="features">
-              <div className="feature">✓ Genuine OEM parts guaranteed to fit</div>
-              <div className="feature">✓ Free installation guides</div>
-              <div className="feature">✓ Expert repair instructions</div>
+              <div className="feature">Genuine OEM parts guaranteed to fit</div>
+              <div className="feature">Free installation guides</div>
+              <div className="feature">Expert repair instructions</div>
             </div>
           </div>
           <div className="chat-container">
@@ -166,7 +166,7 @@ function App() {
       {orderComplete && (
         <div className="order-confirmation-overlay">
           <div className="order-confirmation">
-            <div className="success-icon">✅</div>
+            <div className="success-icon">✓</div>
             <h2>Order Placed Successfully!</h2>
             <p>Thank you for your purchase. Your order has been confirmed.</p>
             <div className="order-details">

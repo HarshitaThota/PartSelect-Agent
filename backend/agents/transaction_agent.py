@@ -18,8 +18,8 @@ class TransactionAgent(BaseAgent):
 
     async def process(self, query: str, context: Dict[str, Any] = None) -> AgentResult:
         """Process transaction-related queries"""
-        print(f"🔄 Transaction agent process called with query: {query}")
-        print(f"🔄 Transaction agent context: {context}")
+        print(f"Transaction agent process called with query: {query}")
+        print(f"Transaction agent context: {context}")
         try:
             # Handle different context structures
             if context and "intent" in context and isinstance(context["intent"], str):
@@ -33,10 +33,10 @@ class TransactionAgent(BaseAgent):
 
             specialist_result = context.get("specialist_result", {}) if context else {}
             parts = specialist_result.get("parts", [])
-            print(f"🔄 Transaction agent extracted {len(parts)} parts from specialist_result")
+            print(f"Transaction agent extracted {len(parts)} parts from specialist_result")
 
             if intent == "purchase_intent":
-                print(f"🔄 Calling _handle_purchase_intent with {len(parts)} parts")
+                print(f"Calling _handle_purchase_intent with {len(parts)} parts")
                 return await self._handle_purchase_intent(query, parts, context)
             elif intent == "purchase_confirmation":
                 return await self._handle_purchase_confirmation(query, context)
@@ -57,11 +57,11 @@ class TransactionAgent(BaseAgent):
 
     async def _handle_purchase_intent(self, query: str, parts: List[Dict], context: Dict) -> AgentResult:
         """Handle when user wants to purchase a part"""
-        print(f"🔄 _handle_purchase_intent called with {len(parts)} parts")
-        print(f"🔄 Parts data: {[p.get('partselect_number', 'no_part_number') for p in parts]}")
+        print(f"_handle_purchase_intent called with {len(parts)} parts")
+        print(f"Parts data: {[p.get('partselect_number', 'no_part_number') for p in parts]}")
 
         if not parts:
-            print(f"🔄 No parts provided to _handle_purchase_intent")
+            print(f"No parts provided to _handle_purchase_intent")
             return AgentResult(
                 success=True,
                 data={
@@ -78,7 +78,7 @@ class TransactionAgent(BaseAgent):
 
         # Take the first/most relevant part
         part = parts[0]
-        print(f"🔄 Selected part for purchase: {part.get('partselect_number', 'unknown')} - {part.get('name', 'unknown')}")
+        print(f"Selected part for purchase: {part.get('partselect_number', 'unknown')} - {part.get('name', 'unknown')}")
 
         result = AgentResult(
             success=True,
@@ -103,12 +103,12 @@ class TransactionAgent(BaseAgent):
             },
             message=f"Ready to help you purchase {part['name']} (#{part['partselect_number']})"
         )
-        print(f"🔄 _handle_purchase_intent returning success with message: {result.message}")
+        print(f"_handle_purchase_intent returning success with message: {result.message}")
         return result
 
     async def _handle_purchase_confirmation(self, query: str, context: Dict) -> AgentResult:
         """Handle purchase confirmation responses like 'yes', 'proceed', etc."""
-        print(f"🔄 _handle_purchase_confirmation called with query: {query}")
+        print(f"_handle_purchase_confirmation called with query: {query}")
 
         # Check if we have a last shown part from the orchestrator
         # This would be passed via context from the orchestrator
@@ -116,7 +116,7 @@ class TransactionAgent(BaseAgent):
 
         if last_part:
             part_number = last_part.get("partselect_number")
-            print(f"🔄 Found last shown part: {part_number}")
+            print(f"Found last shown part: {part_number}")
 
             # Add the part to cart
             return AgentResult(
@@ -155,7 +155,7 @@ class TransactionAgent(BaseAgent):
 
     async def _handle_cart_operations(self, query: str, context: Dict) -> AgentResult:
         """Handle cart-related operations"""
-        print(f"🛒 Transaction agent handling cart operations: {query}")
+        print(f"Transaction agent handling cart operations: {query}")
 
         # Check if this is a generic confirmation like "yes", "add it", etc.
         confirmation_phrases = ["yes", "add it", "yes add", "proceed"]
@@ -164,7 +164,7 @@ class TransactionAgent(BaseAgent):
             last_part = context.get("last_shown_part")
             if last_part:
                 part_number = last_part.get("partselect_number")
-                print(f"🛒 Cart confirmation for last shown part: {part_number}")
+                print(f"Cart confirmation for last shown part: {part_number}")
 
                 return AgentResult(
                     success=True,

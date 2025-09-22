@@ -30,7 +30,7 @@ function PartCard({ part, onAddToCart, onViewDetails, isInCart = false }) {
         <div className="price-stock">
           <span className="price">${part.price}</span>
           <span className={`stock-status ${part.in_stock ? 'in-stock' : 'out-stock'}`}>
-            {part.in_stock ? '✓ In Stock' : '⚠ Out of Stock'}
+            {part.in_stock ? 'In Stock' : 'Out of Stock'}
           </span>
         </div>
 
@@ -53,7 +53,7 @@ function PartCard({ part, onAddToCart, onViewDetails, isInCart = false }) {
           onClick={handleAddToCart}
           disabled={!part.in_stock || isInCart}
         >
-          {isInCart ? '✓ In Cart' : part.in_stock ? 'Add to Cart' : 'Out of Stock'}
+          {isInCart ? 'In Cart' : part.in_stock ? 'Add to Cart' : 'Out of Stock'}
         </button>
 
         <button

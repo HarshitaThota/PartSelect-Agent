@@ -29,14 +29,14 @@ class VectorSearchTool:
             try:
                 self.pc = Pinecone(api_key=self.pinecone_api_key)
                 self.index = self.pc.Index(self.index_name)
-                print(f"✅ Connected to Pinecone index: {self.index_name}")
+                print(f"Connected to Pinecone index: {self.index_name}")
             except Exception as e:
                 print(f"⚠️ Pinecone connection failed: {e}")
 
         if self.openai_api_key and self.openai_api_key != "your_openai_key_here":
             try:
                 self.openai_client = OpenAI(api_key=self.openai_api_key)
-                print("✅ Connected to OpenAI API")
+                print("Connected to OpenAI API")
             except Exception as e:
                 print(f"⚠️ OpenAI connection failed: {e}")
 
@@ -58,7 +58,7 @@ class VectorSearchTool:
             )
             return response.data[0].embedding
         except Exception as e:
-            print(f"❌ Error creating embeddings: {e}")
+            print(f"Error creating embeddings: {e}")
             return None
 
     def _create_part_text(self, part: Dict) -> str:
@@ -87,12 +87,12 @@ class VectorSearchTool:
                 vector_count = index_stats.get('total_vector_count', 0)
 
                 if vector_count > 0:
-                    print(f"✅ Index already initialized with {vector_count} vectors")
+                    print(f"Index already initialized with {vector_count} vectors")
                     return True
             except:
                 pass
 
-            print("🔄 Initializing Pinecone index with parts data...")
+            print("Initializing Pinecone index with parts data...")
 
             # Prepare vectors for upsert
             vectors_to_upsert = []
@@ -128,11 +128,11 @@ class VectorSearchTool:
                 self.index.upsert(vectors=vectors_to_upsert)
                 print("📤 Uploaded final batch")
 
-            print(f"✅ Successfully initialized index with {len(self.parts_data)} parts")
+            print(f"Successfully initialized index with {len(self.parts_data)} parts")
             return True
 
         except Exception as e:
-            print(f"❌ Error initializing index: {e}")
+            print(f"Error initializing index: {e}")
             return False
 
     async def semantic_search(self, query: str, top_k: int = 5, filters: Dict = None) -> List[Dict]:
@@ -185,7 +185,7 @@ class VectorSearchTool:
             return found_parts
 
         except Exception as e:
-            print(f"❌ Error in semantic search: {e}")
+            print(f"Error in semantic search: {e}")
             return []
 
     async def hybrid_search(self, query: str, traditional_results: List[Dict], top_k: int = 5, filters: Dict = None) -> List[Dict]:
