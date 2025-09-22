@@ -9,6 +9,6 @@ __pycache__/
 .vscode/
 .idea/
 backend/data/
-data/refrigerator_parts.json
+data/
 notes.txt
 tests.txt
