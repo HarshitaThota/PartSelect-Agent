@@ -6,16 +6,15 @@ import json
 import os
 from dotenv import load_dotenv
 
-# Load environment variables from root directory
 load_dotenv("../.env")
 
-# Import our modules
+# modules
 from models import ChatRequest, ChatResponse, PartInfo, TransactionRequest, TransactionResponse, Cart
 from agents.agent_orchestrator import AgentOrchestrator
 
 app = FastAPI(title="PartSelect Chat Agent API", version="1.0.0")
 
-# Configure CORS
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000"],  # React frontend
@@ -24,12 +23,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize Agent Orchestrator
 agent_orchestrator = None
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize Agent Orchestrator on startup"""
     global agent_orchestrator
     try:
         agent_orchestrator = AgentOrchestrator()
@@ -44,7 +41,6 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    """Enhanced health check with model and service status"""
     health_data = {
         "status": "healthy",
         "agent_orchestrator": agent_orchestrator is not None,
@@ -53,7 +49,7 @@ async def health_check():
     }
 
     if agent_orchestrator:
-        # Check Deepseek model status
+        # Deepseek model status
         response_agent = agent_orchestrator.agents.get("response")
         if response_agent:
             deepseek_key = response_agent.deepseek_api_key
@@ -64,7 +60,7 @@ async def health_check():
                 "status": "active" if deepseek_key and deepseek_key != "demo_key" else "fallback"
             }
 
-        # Check Vector Search status
+        # Vector Search status
         if hasattr(agent_orchestrator, 'tools') and agent_orchestrator.tools:
             vector_available = agent_orchestrator.tools.vector_search.is_available()
             health_data["services"]["vector_search"] = {
@@ -75,7 +71,7 @@ async def health_check():
                 "status": "active" if vector_available else "disabled"
             }
 
-        # Check parts data
+        # parts data
         parts_count = len(agent_orchestrator.parts_data) if hasattr(agent_orchestrator, 'parts_data') else 0
         health_data["services"]["parts_data"] = {
             "total_parts": parts_count,
@@ -86,12 +82,11 @@ async def health_check():
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat_endpoint(request: ChatRequest):
-    """Main chat endpoint"""
     if not agent_orchestrator:
         raise HTTPException(status_code=500, detail="Agent orchestrator not initialized")
 
     try:
-        # Process the query through agent pipeline
+        # query through agent pipeline
         result = await agent_orchestrator.process_query(
             query=request.message,
             conversation_history=request.conversation_history
@@ -99,7 +94,6 @@ async def chat_endpoint(request: ChatRequest):
 
         print(f"DEBUG: Result from orchestrator: {result}")
 
-        # Convert to ChatResponse format
         parts = [PartInfo(**part) for part in result.get("parts", [])]
 
         return ChatResponse(
@@ -144,7 +138,6 @@ async def get_part_details(part_number: str):
 
 @app.post("/compatibility/check")
 async def check_compatibility(part_number: str, model_number: str):
-    """Check part compatibility with model"""
     if not agent_orchestrator:
         raise HTTPException(status_code=500, detail="Agent orchestrator not initialized")
 
@@ -156,7 +149,6 @@ async def check_compatibility(part_number: str, model_number: str):
 
 @app.post("/cart/add")
 async def add_to_cart(request: TransactionRequest):
-    """Add item to cart"""
     if not agent_orchestrator:
         raise HTTPException(status_code=500, detail="Agent orchestrator not initialized")
 
@@ -168,7 +160,6 @@ async def add_to_cart(request: TransactionRequest):
 
 @app.get("/cart")
 async def get_cart():
-    """Get current cart contents"""
     if not agent_orchestrator:
         raise HTTPException(status_code=500, detail="Agent orchestrator not initialized")
 
@@ -180,7 +171,6 @@ async def get_cart():
 
 @app.post("/cart/update")
 async def update_cart(request: TransactionRequest):
-    """Update cart item quantities"""
     if not agent_orchestrator:
         raise HTTPException(status_code=500, detail="Agent orchestrator not initialized")
 
@@ -192,7 +182,6 @@ async def update_cart(request: TransactionRequest):
 
 @app.delete("/cart/clear")
 async def clear_cart():
-    """Clear all items from cart"""
     if not agent_orchestrator:
         raise HTTPException(status_code=500, detail="Agent orchestrator not initialized")
 
@@ -204,7 +193,6 @@ async def clear_cart():
 
 @app.get("/agents/status")
 async def get_agent_status():
-    """Get status of all agents"""
     if not agent_orchestrator:
         raise HTTPException(status_code=500, detail="Agent orchestrator not initialized")
 

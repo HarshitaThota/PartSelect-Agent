@@ -1,14 +1,11 @@
-"""
-Product Agent
-Handles all product-related queries: search, installation guidance, and compatibility checking
-Consolidates functionality from search_agent, installation_agent, and compatibility_agent
-"""
+# Product Agent
+# for the product queries like search, installation, and compatibility 
+
 
 from typing import Dict, Any, List
 from .base_agent import BaseAgent, AgentResult
 
 class ProductAgent(BaseAgent):
-    """Agent specialized in all product-related operations"""
 
     def __init__(self, tools=None):
         super().__init__(
@@ -18,10 +15,6 @@ class ProductAgent(BaseAgent):
         self.tools = tools  # Direct tool access instead of registration
 
     async def process(self, query: str, context: Dict[str, Any] = None) -> AgentResult:
-        """Process product-related queries based on intent"""
-        print(f"Product agent processing query: {query}")
-        print(f"Product agent context: {context}")
-
         try:
             intent_data = context or {}
             intent = intent_data.get("intent", "part_lookup")
@@ -44,25 +37,18 @@ class ProductAgent(BaseAgent):
             )
 
     async def _handle_part_search(self, query: str, intent_data: Dict[str, Any]) -> AgentResult:
-        """Handle part search and discovery queries"""
         entities = intent_data.get("extracted_entities", {})
         search_params = self._build_search_params(query, entities)
         tools_used = []
 
-        # If we have specific part numbers, get those directly
+        # if there's have specific part numbers, get those directly
         part_numbers = entities.get("part_numbers", [])
         if part_numbers:
-            print(f"Direct lookup for part numbers: {part_numbers}")
             parts = []
             for part_number in part_numbers:
-                print(f"Looking up part: {part_number}")
                 part_details = await self.tools.get_part_details(part_number) if self.tools else None
-                print(f"Part details result: {part_details}")
                 if part_details and "error" not in part_details:
-                    print(f"Adding part to results: {part_details.get('partselect_number', 'unknown')}")
                     parts.append(part_details)
-                else:
-                    print(f"Part details failed validation: part_details={bool(part_details)}, has_error={'error' in (part_details or {})}")
             tools_used.append("get_part_details")
 
             if parts:
@@ -77,7 +63,7 @@ class ProductAgent(BaseAgent):
                     message=f"Found {len(parts)} parts by direct lookup"
                 )
 
-        # Search by category if specified
+        # search by category if specified
         categories = entities.get("categories", [])
         appliance_types = entities.get("appliance_types", [])
 
@@ -106,8 +92,6 @@ class ProductAgent(BaseAgent):
                     message=f"Found {len(parts)} parts by category search"
                 )
 
-        # General text search
-        print(f"Calling search_parts with params: {search_params}")
         search_results = await self.tools.search_parts(
             query=search_params["query"],
             category=search_params.get("category"),
@@ -115,7 +99,6 @@ class ProductAgent(BaseAgent):
             brand=search_params.get("brand"),
             limit=10
         ) if self.tools else []
-        print(f"Search results: {len(search_results) if isinstance(search_results, list) else 'error'}")
         tools_used.append("search_parts")
 
         if "error" in search_results:
@@ -147,25 +130,19 @@ class ProductAgent(BaseAgent):
             parts_info = []
 
             for part_number in part_numbers:
-                print(f"Looking up installation for part: {part_number}")
-
-                # Get installation guide
+                # gett installation guide
                 guide = await self.tools.get_installation_guide(part_number) if self.tools else {}
                 tools_used.append("get_installation_guide")
 
                 if guide and "error" not in guide:
                     installation_guides.append(guide)
-                    print(f"Found installation guide for: {part_number}")
 
-                # Get part details for context
+                # get part details for context
                 part_details = await self.tools.get_part_details(part_number) if self.tools else None
                 tools_used.append("get_part_details")
 
                 if part_details and "error" not in part_details:
                     parts_info.append(part_details)
-                    print(f"Found part details for: {part_number}")
-                else:
-                    print(f"No part details found for: {part_number}")
 
             return AgentResult(
                 success=True,
@@ -178,7 +155,6 @@ class ProductAgent(BaseAgent):
                 message=f"Found installation guides for {len(installation_guides)} part(s)"
             )
         else:
-            # General installation question without specific part
             return AgentResult(
                 success=True,
                 data={
@@ -190,7 +166,6 @@ class ProductAgent(BaseAgent):
             )
 
     async def _handle_compatibility(self, query: str, intent_data: Dict[str, Any]) -> AgentResult:
-        """Handle compatibility checking queries"""
         entities = intent_data.get("extracted_entities", {})
         part_numbers = entities.get("part_numbers", [])
         model_numbers = entities.get("model_numbers", [])
@@ -209,8 +184,6 @@ class ProductAgent(BaseAgent):
 
                     if "error" not in compatibility_result:
                         results.append(compatibility_result)
-
-                    # Also get part details for context
                     part_details = await self.tools.get_part_details(part_number) if self.tools else None
                     tools_used.append("get_part_details")
 
@@ -274,22 +247,21 @@ class ProductAgent(BaseAgent):
             )
 
     def _build_search_params(self, query: str, entities: Dict[str, List[str]]) -> Dict[str, Any]:
-        """Build search parameters from query and entities"""
         params = {
             "query": query
         }
 
-        # Add appliance type if specified
+        # appliance type if specified
         appliance_types = entities.get("appliance_types", [])
         if appliance_types:
             params["appliance_type"] = appliance_types[0]
 
-        # Add category if specified
+        # category if specified
         categories = entities.get("categories", [])
         if categories:
             params["category"] = categories[0]
 
-        # Add brand filter if specified
+        # brand filter if specified
         brands = entities.get("brands", [])
         if brands:
             params["brand"] = brands[0]

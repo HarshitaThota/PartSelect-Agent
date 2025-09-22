@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 
 class ChatMessage(BaseModel):
-    role: str  # "user" or "assistant"
+    role: str
     content: str
 
 class ChatRequest(BaseModel):
@@ -49,7 +49,7 @@ class Cart(BaseModel):
     discount_amount: float = 0.0
 
 class TransactionRequest(BaseModel):
-    action: str  # "add_to_cart", "remove_from_cart", "update_quantity", "clear_cart"
+    action: str 
     part_number: Optional[str] = None
     quantity: Optional[int] = 1
     cart_item_id: Optional[str] = None
@@ -63,4 +63,4 @@ class TransactionResponse(BaseModel):
 class SearchResult(BaseModel):
     part: PartInfo
     relevance_score: float
-    match_type: str  # "exact", "semantic", "category"
+    match_type: str 

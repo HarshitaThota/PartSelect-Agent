@@ -1,23 +1,18 @@
-"""
-Troubleshooting Agent
-Handles problem diagnosis and repair recommendations
-"""
+# Handles problem diagnosis and repair recommendations
 
 from typing import Dict, Any, List
 from .base_agent import BaseAgent, AgentResult
 
 class TroubleshootingAgent(BaseAgent):
-    """Agent specialized in troubleshooting appliance issues"""
 
     def __init__(self, tools=None):
         super().__init__(
             name="troubleshooting_agent",
             description="Diagnoses problems and recommends repair solutions"
         )
-        self.tools = tools  # Direct tool access
+        self.tools = tools  # direct tool access 
 
     async def process(self, query: str, context: Dict[str, Any] = None) -> AgentResult:
-        """Process troubleshooting queries"""
         try:
             intent_data = context or {}
             entities = intent_data.get("extracted_entities", {})
@@ -25,7 +20,7 @@ class TroubleshootingAgent(BaseAgent):
             appliance_types = entities.get("appliance_types", [])
             tools_used = []
 
-            # Check if this is a general problems inquiry
+            # is it a general problem inquiry
             if self._is_general_problems_query(query):
                 appliance_type = appliance_types[0] if appliance_types else "general"
                 common_problems = self._get_common_problems(appliance_type)
@@ -36,19 +31,19 @@ class TroubleshootingAgent(BaseAgent):
                         "troubleshooting_type": "common_problems",
                         "appliance_type": appliance_type,
                         "common_problems": common_problems,
-                        "parts": []  # No parts needed for general info
+                        "parts": []  
                     },
                     tools_used=tools_used,
                     message=f"Common {appliance_type} problems and solutions provided"
                 )
 
-            # Extract symptoms from the query
+            # symptoms from the query
             symptoms = self._extract_symptoms(query)
 
             if symptoms:
                 appliance_type = appliance_types[0] if appliance_types else None
 
-                # Find parts that might fix these symptoms
+                # parts that might fix these symptoms
                 potential_solutions = await self.tools.troubleshoot_issue(
                     symptoms=symptoms,
                     appliance_type=appliance_type
@@ -56,7 +51,7 @@ class TroubleshootingAgent(BaseAgent):
                 tools_used.append("troubleshoot_issue")
 
                 if potential_solutions and "error" not in potential_solutions:
-                    # Extract parts from solutions
+                    # parts from solutions
                     parts = [solution.get("part") for solution in potential_solutions if solution.get("part")]
 
                     return AgentResult(
@@ -71,7 +66,7 @@ class TroubleshootingAgent(BaseAgent):
                         message=f"Found {len(potential_solutions)} potential solutions for the reported symptoms"
                     )
 
-            # If no specific symptoms identified, provide general guidance
+            # no specific symptoms then provide general guidance
             return AgentResult(
                 success=True,
                 data={
@@ -89,10 +84,9 @@ class TroubleshootingAgent(BaseAgent):
             )
 
     def _extract_symptoms(self, query: str) -> str:
-        """Extract symptoms from the query text"""
         query_lower = query.lower()
 
-        # Common symptom keywords
+        # some symptom keywords
         symptom_patterns = [
             "not working", "broken", "not cooling", "not heating",
             "making noise", "leaking", "not draining", "won't start",
@@ -109,7 +103,6 @@ class TroubleshootingAgent(BaseAgent):
         return " ".join(found_symptoms) if found_symptoms else query_lower
 
     def _is_general_problems_query(self, query: str) -> bool:
-        """Check if the query is asking for general problems/issues"""
         query_lower = query.lower()
         general_patterns = [
             "common problems", "common issues", "what problems", "what issues",
@@ -121,7 +114,6 @@ class TroubleshootingAgent(BaseAgent):
         return any(pattern in query_lower for pattern in general_patterns)
 
     def _get_common_problems(self, appliance_type: str) -> List[Dict[str, str]]:
-        """Get common problems for the specified appliance type"""
 
         dishwasher_problems = [
             {
@@ -194,5 +186,5 @@ class TroubleshootingAgent(BaseAgent):
         elif appliance_type in ["refrigerator", "fridge"]:
             return refrigerator_problems
         else:
-            # Return combined list for general queries
+            # combined list for general queries
             return dishwasher_problems + refrigerator_problems

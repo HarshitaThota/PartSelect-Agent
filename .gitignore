@@ -31,6 +31,7 @@ Thumbs.db
 
 # Data files
 data/refrigerator_parts.json
+backend/data/
 *.csv
 *.json
 

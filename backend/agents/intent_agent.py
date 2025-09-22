@@ -1,26 +1,18 @@
-"""
-Intent Classification Agent
-Pretty much determines what the user wants to do based on their query 
-"""
+# Intent Classification Agent, pretty much determines what the user wants to do based on their query
 
 import re
 from typing import Dict, Any, List
 from .base_agent import BaseAgent, AgentResult
-from .scope_agent import ScopeAgent
 
 class IntentAgent(BaseAgent):
-    """Agent that classifies user intent from natural language queries"""
-
     def __init__(self):
         super().__init__(
             name="intent_classifier",
             description="Classifies user intent from natural language queries"
         )
         self.intent_patterns = self._load_intent_patterns()
-        self.scope_agent = ScopeAgent()
 
     def _load_intent_patterns(self) -> Dict[str, List[str]]:
-        """Define patterns for each intent type"""
         return {
             "part_lookup": [
                 r"part\s+number\s+([A-Z]{2}\s?\d+)",
@@ -133,29 +125,42 @@ class IntentAgent(BaseAgent):
             ]
         }
 
+    def _is_in_scope(self, query: str) -> bool:
+        query_lower = query.lower()
+
+        # check for appliance keywords
+        appliance_words = ["refrigerator", "fridge", "dishwasher", "appliance"]
+        has_appliance = any(word in query_lower for word in appliance_words)
+
+        # check for part numbers
+        has_part_number = bool(re.search(r'[A-Z]{2}\d{6,}', query, re.IGNORECASE))
+
+        # check for appliance parts keywords
+        part_words = ["part", "filter", "ice maker", "door", "seal", "pump", "motor", "valve", "rack"]
+        has_parts = any(word in query_lower for word in part_words)
+
+        return has_appliance or has_part_number or has_parts
+
     async def process(self, query: str, context: Dict[str, Any] = None) -> AgentResult:
-        """Classify the intent of a user query"""
         try:
             query_lower = query.lower().strip()
 
-            # Check for out-of-scope queries first using intelligent scope detection
-            scope_result = await self.scope_agent.process(query)
-            if scope_result.success and not scope_result.data.get("is_in_scope", True):
+            # simple scope check
+            if not self._is_in_scope(query):
                 return AgentResult(
                     success=True,
                     data={
                         "intent": "out_of_scope",
-                        "confidence": scope_result.data.get("confidence", 0.9),
+                        "confidence": 0.9,
                         "extracted_entities": {},
-                        "reasoning": scope_result.data.get("reasoning", "Query is outside refrigerator/dishwasher parts scope")
+                        "reasoning": "Query is outside refrigerator/dishwasher parts scope"
                     },
                     message="Query identified as out of scope"
                 )
 
-            # Extract entities (part numbers, model numbers, etc.)
+            # get entities like part numbers, model numbers n stuff
             entities = self._extract_entities(query_lower)
 
-            # Classify intent based on patterns
             intent_scores = {}
 
             for intent, patterns in self.intent_patterns.items():
@@ -168,10 +173,8 @@ class IntentAgent(BaseAgent):
                         matched_patterns.append(pattern)
 
                 if score > 0:
-                    # Normalize score by number of patterns
                     intent_scores[intent] = score / len(patterns)
 
-            # Determine primary intent
             if not intent_scores:
                 primary_intent = "general_info"
                 confidence = 0.5
@@ -179,8 +182,7 @@ class IntentAgent(BaseAgent):
                 primary_intent = max(intent_scores, key=intent_scores.get)
                 confidence = intent_scores[primary_intent]
 
-            # Special case: if we found a part number, it's likely a part lookup
-            # BUT respect purchase/transaction intent if those keywords are present
+           
             if entities.get("part_numbers"):
                 if "install" in query_lower or "how to" in query_lower:
                     primary_intent = "installation_help"
@@ -224,41 +226,41 @@ class IntentAgent(BaseAgent):
             "categories": []
         }
 
-        # Extract part numbers (PS + digits, W + digits, etc.)
+        # get em part numbers (PS + digits, W + digits, etc.)
         part_patterns = [
-            r'PS\s?\d{8,}',  # PS12364199 or PS 12364199
-            r'W\s?\d{8,}',   # W10712395 or W 10712395
-            r'[A-Z]{2,3}\s?\d{6,}',  # General pattern with optional space
+            r'PS\s?\d{8,}',
+            r'W\s?\d{8,}',   
+            r'[A-Z]{2,3}\s?\d{6,}',  
         ]
 
         for pattern in part_patterns:
             matches = re.findall(pattern, query, re.IGNORECASE)
             entities["part_numbers"].extend(matches)
 
-        # Extract model numbers
+        # get model numbers
         model_patterns = [
-            r'[A-Z]{2,4}\d{3,}[A-Z]*\d*',  # WDT780SAEM1, FFHS2622MS
+            r'[A-Z]{2,4}\d{3,}[A-Z]*\d*',  
         ]
 
         for pattern in model_patterns:
             matches = re.findall(pattern, query, re.IGNORECASE)
             entities["model_numbers"].extend(matches)
 
-        # Extract brands (use word boundaries to avoid false matches)
+        # gett brands 
         brands = ["whirlpool", "kenmore", "ge", "frigidaire", "lg", "samsung", "kitchenaid", "bosch"]
         for brand in brands:
             # Use word boundaries to avoid "ge" matching inside "fridge"
             if re.search(r'\b' + brand + r'\b', query.lower()):
                 entities["brands"].append(brand.title())
 
-        # Extract appliance types (normalize fridge -> refrigerator)
+        # get appliance types n also normalize fridge as refrigerator lol
         query_lower = query.lower()
         if "refrigerator" in query_lower or "fridge" in query_lower:
             entities["appliance_types"].append("refrigerator")
         if "dishwasher" in query_lower:
             entities["appliance_types"].append("dishwasher")
 
-        # Extract categories
+        # get categories
         categories = [
             "water filter", "ice maker", "door seal", "door shelf", "drawer",
             "wash arm", "pump", "rack", "control board", "motor", "valve"
@@ -267,7 +269,7 @@ class IntentAgent(BaseAgent):
             if category in query.lower():
                 entities["categories"].append(category)
 
-        # Remove duplicates
+        # kick duplicates
         for key in entities:
             entities[key] = list(set(entities[key]))
 

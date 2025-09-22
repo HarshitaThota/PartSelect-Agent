@@ -1,15 +1,9 @@
-"""
-Tool system for PartSelect agents
-Tools are reusable functions that agents can call to perform specific tasks
-"""
-
 import json
 import re
 from typing import List, Dict, Any, Optional
 from .vector_search_tool import VectorSearchTool
 
 class PartSelectTools:
-    """Collection of tools for PartSelect agents"""
 
     def __init__(self, parts_data: List[Dict]):
         self.parts_data = parts_data
@@ -17,14 +11,12 @@ class PartSelectTools:
 
     async def search_parts(self, query: str, category: str = None,
                           appliance_type: str = None, brand: str = None, limit: int = 10) -> List[Dict]:
-        """Search for parts using hybrid traditional + semantic search"""
         try:
-            # First, do traditional keyword-based search
+            # first we traditional keyword searching
             traditional_results = await self._traditional_search(query, category, appliance_type, brand, limit)
 
-            # If vector search is available, enhance with semantic search
+            # if vector search is available enhance with semantic search
             if self.vector_search.is_available():
-                # Build filters for semantic search
                 filters = {}
                 if appliance_type:
                     filters["appliance_type"] = appliance_type
@@ -33,65 +25,53 @@ class PartSelectTools:
                 if brand:
                     filters["brand"] = brand
 
-                # Use hybrid search for better results
-                print(f"🔍 Using hybrid search with filters: {filters}")
-                print(f"🔍 Traditional search found {len(traditional_results)} results before hybrid")
                 hybrid_results = await self.vector_search.hybrid_search(
                     query, traditional_results, limit, filters
                 )
-                print(f"🔍 Hybrid search returned {len(hybrid_results)} results")
                 return hybrid_results
             else:
-                print("🔍 Using traditional search (vector search not available)")
                 return traditional_results
 
         except Exception as e:
-            print(f"❌ Search error: {e}")
             return [{"error": f"Search failed: {str(e)}"}]
 
     async def _traditional_search(self, query: str, category: str = None,
                                  appliance_type: str = None, brand: str = None, limit: int = 10) -> List[Dict]:
-        """Traditional keyword-based search"""
         results = []
         query_lower = query.lower()
 
         for part in self.parts_data:
-            # First, check appliance type filter - this is mandatory
+            # mandatory check appliance type filter
             if appliance_type and part["appliance_type"].lower() != appliance_type.lower():
-                continue  # Skip parts that don't match the appliance type
+                continue  # skip parts that don't match the appliance type
 
-            # If category is specified, filter by category too
+            # when category is specified filter by it
             if category and part["category"].lower() != category.lower():
-                continue  # Skip parts that don't match the category
+                continue  # skippy skip again
 
-            # If brand is specified, filter by brand too
+            # when brand is specified yktv
             if brand and part["brand"].lower() != brand.lower():
-                continue  # Skip parts that don't match the brand
+                continue  
 
             score = 0.0
 
-            # Exact part number match (highest priority)
+            # part number match (highest priority)
             if (part["partselect_number"].lower() in query_lower or
                 part["manufacturer_part_number"].lower() in query_lower):
                 score = 1.0
 
-            # Category match
             elif category and part["category"].lower() == category.lower():
                 score = 0.9
 
-            # Appliance type match (already filtered above, but give score)
             elif appliance_type and part["appliance_type"].lower() == appliance_type.lower():
                 score = 0.8
 
-            # Name/description keyword match
             elif any(word in part["name"].lower() for word in query_lower.split()):
                 score = 0.7
 
-            # Brand match
             elif any(word in part["brand"].lower() for word in query_lower.split()):
                 score = 0.6
 
-            # Symptom match
             symptoms = part.get("troubleshooting", {}).get("symptoms_fixed", [])
             if any(symptom.lower() in query_lower for symptom in symptoms):
                 score = 0.8
@@ -101,34 +81,24 @@ class PartSelectTools:
                 part_copy["relevance_score"] = score
                 results.append(part_copy)
 
-        # Sort by relevance and return top results
+        # sortibg by relevance and return top results
         results.sort(key=lambda x: x["relevance_score"], reverse=True)
         return results[:limit]
 
     async def get_part_details(self, part_number: str) -> Optional[Dict]:
-        """Get detailed information about a specific part"""
-        print(f"get_part_details called with: {part_number}")
-        print(f"Searching through {len(self.parts_data)} parts")
         try:
             search_term = part_number.lower().strip()
 
             for i, part in enumerate(self.parts_data):
-                # Check all searchable numbers (includes original, spaced, and lowercase versions)
                 searchable_numbers = part.get("searchable_numbers", [])
                 if any(num.lower() == search_term for num in searchable_numbers):
-                    print(f"Found match at index {i}: {part['partselect_number']}")
                     return part
 
-                # Fallback to original logic
                 if (part["partselect_number"].lower() == search_term or
                     part["manufacturer_part_number"].lower() == search_term):
-                    print(f"Found match at index {i}: {part['partselect_number']}")
                     return part
-
-            print(f"No match found for {part_number}")
             return None
         except Exception as e:
-            print(f"Error in get_part_details: {e}")
             return {"error": f"Failed to get part details: {str(e)}"}
 
     async def check_compatibility(self, part_number: str, model_number: str) -> Dict[str, Any]:
@@ -146,7 +116,6 @@ class PartSelectTools:
             compatible_models = part.get("compatibility", {}).get("compatible_models", [])
             model_lower = model_number.lower()
 
-            # Check for exact match or partial match
             is_compatible = any(
                 model_lower in compatible_model.lower() or
                 compatible_model.lower() in model_lower
@@ -158,7 +127,7 @@ class PartSelectTools:
                 "part_number": part_number,
                 "model_number": model_number,
                 "part_name": part.get("name", ""),
-                "compatible_models": compatible_models[:5],  # Show first 5 for brevity
+                "compatible_models": compatible_models[:5],  
                 "reason": "Model found in compatibility list" if is_compatible else "Model not in compatibility list"
             }
 
@@ -166,7 +135,6 @@ class PartSelectTools:
             return {"error": f"Compatibility check failed: {str(e)}"}
 
     async def get_installation_guide(self, part_number: str) -> Dict[str, Any]:
-        """Get installation instructions for a specific part"""
         try:
             part = await self.get_part_details(part_number)
             if not part or "error" in part:
@@ -188,20 +156,18 @@ class PartSelectTools:
             return {"error": f"Failed to get installation guide: {str(e)}"}
 
     async def troubleshoot_issue(self, symptoms: str, appliance_type: str = None) -> List[Dict]:
-        """Find parts that might fix the described symptoms"""
         try:
             symptoms_lower = symptoms.lower()
             potential_parts = []
 
             for part in self.parts_data:
-                # Filter by appliance type if specified
+   
                 if appliance_type and part["appliance_type"].lower() != appliance_type.lower():
                     continue
 
                 part_symptoms = part.get("troubleshooting", {}).get("symptoms_fixed", [])
                 common_issues = part.get("troubleshooting", {}).get("common_issues", [])
 
-                # Check if any symptoms match
                 symptom_match = any(
                     symptom.lower() in symptoms_lower or symptoms_lower in symptom.lower()
                     for symptom in part_symptoms + common_issues
@@ -214,7 +180,6 @@ class PartSelectTools:
                         "confidence": 0.8 if len([s for s in part_symptoms if s.lower() in symptoms_lower]) > 1 else 0.6
                     })
 
-            # Sort by confidence
             potential_parts.sort(key=lambda x: x["confidence"], reverse=True)
             return potential_parts[:5]  # Top 5 suggestions
 
@@ -222,7 +187,6 @@ class PartSelectTools:
             return [{"error": f"Troubleshooting failed: {str(e)}"}]
 
     async def get_ordering_info(self, part_number: str) -> Dict[str, Any]:
-        """Get ordering information for a part"""
         try:
             part = await self.get_part_details(part_number)
             if not part or "error" in part:
@@ -244,7 +208,6 @@ class PartSelectTools:
             return {"error": f"Failed to get ordering info: {str(e)}"}
 
     async def find_alternative_parts(self, part_number: str) -> List[Dict]:
-        """Find alternative parts that might work as replacements"""
         try:
             original_part = await self.get_part_details(part_number)
             if not original_part or "error" in original_part:
@@ -255,17 +218,16 @@ class PartSelectTools:
             original_appliance = original_part.get("appliance_type", "")
 
             for part in self.parts_data:
-                # Skip the original part
+                # skip the original part
                 if part["partselect_number"] == part_number:
                     continue
 
-                # Same category and appliance type
                 if (part["category"] == original_category and
                     part["appliance_type"] == original_appliance):
 
                     similarity_score = 0.7
 
-                    # Same brand gets higher score
+                    # same brand gets higher score
                     if part["brand"] == original_part["brand"]:
                         similarity_score = 0.9
 
@@ -275,15 +237,13 @@ class PartSelectTools:
                         "replacement_type": "Direct alternative"
                     })
 
-            # Sort by similarity
             alternatives.sort(key=lambda x: x["similarity_score"], reverse=True)
-            return alternatives[:3]  # Top 3 alternatives
+            return alternatives[:3]  
 
         except Exception as e:
             return [{"error": f"Failed to find alternatives: {str(e)}"}]
 
     async def get_parts_by_category(self, category: str, appliance_type: str = None, limit: int = 10) -> List[Dict]:
-        """Get parts in a specific category"""
         try:
             results = []
             for part in self.parts_data:
@@ -297,12 +257,9 @@ class PartSelectTools:
             return [{"error": f"Failed to get parts by category: {str(e)}"}]
 
     async def semantic_search(self, query: str, top_k: int = 5, appliance_type: str = None, brand: str = None, category: str = None) -> List[Dict]:
-        """Perform semantic search using vector embeddings with filtering"""
         if not self.vector_search.is_available():
-            print("🔍 Semantic search not available, falling back to traditional search")
             return await self._traditional_search(query, category, appliance_type, brand, top_k)
 
-        # Build filters for semantic search
         filters = {}
         if appliance_type:
             filters["appliance_type"] = appliance_type
@@ -310,12 +267,9 @@ class PartSelectTools:
             filters["brand"] = brand
         if category:
             filters["category"] = category
-
-        print(f"🔍 Direct semantic search with filters: {filters}")
         return await self.vector_search.semantic_search(query, top_k, filters)
 
     async def find_similar_parts(self, part_number: str, top_k: int = 3) -> List[Dict]:
-        """Find parts similar to a given part using semantic similarity"""
         if not self.vector_search.is_available():
             # Fallback to category-based similarity
             part = await self.get_part_details(part_number)
@@ -330,9 +284,7 @@ class PartSelectTools:
         return await self.vector_search.find_similar_parts(part_number, top_k)
 
     async def initialize_vector_search(self) -> bool:
-        """Initialize the vector search index"""
         if not self.vector_search.is_available():
-            print("⚠️ Cannot initialize vector search - missing API keys")
             return False
 
         return await self.vector_search.initialize_index()
