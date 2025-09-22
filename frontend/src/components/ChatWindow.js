@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import "./ChatWindow.css";
 import { getAIMessage } from "../services/api";
 import { marked } from "marked";
@@ -137,7 +137,7 @@ function ChatWindow({ addToCart, cartItems }) {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask about parts, installation, compatibility, or troubleshooting..."
-              onKeyPress={(e) => {
+              onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   handleSend(input);
                   e.preventDefault();
