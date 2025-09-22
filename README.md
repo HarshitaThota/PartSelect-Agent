@@ -390,8 +390,6 @@ intents = {
 
 **[🚀 Start the Application](#-quick-start)** • **[💻 View API Docs](http://localhost:8000/docs)** • **[🎯 Try Example Queries](#-example-queries)**
 
----
 
-*Built with ❤️ for the Instalily team • Powered by modern AI and web technologies*
 
 </div>
