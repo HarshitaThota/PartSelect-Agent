@@ -244,17 +244,19 @@ class IntentAgent(BaseAgent):
             matches = re.findall(pattern, query, re.IGNORECASE)
             entities["model_numbers"].extend(matches)
 
-        # Extract brands
+        # Extract brands (use word boundaries to avoid false matches)
         brands = ["whirlpool", "kenmore", "ge", "frigidaire", "lg", "samsung", "kitchenaid", "bosch"]
         for brand in brands:
-            if brand in query.lower():
+            # Use word boundaries to avoid "ge" matching inside "fridge"
+            if re.search(r'\b' + brand + r'\b', query.lower()):
                 entities["brands"].append(brand.title())
 
-        # Extract appliance types
-        appliances = ["refrigerator", "fridge", "dishwasher"]
-        for appliance in appliances:
-            if appliance in query.lower():
-                entities["appliance_types"].append(appliance)
+        # Extract appliance types (normalize fridge -> refrigerator)
+        query_lower = query.lower()
+        if "refrigerator" in query_lower or "fridge" in query_lower:
+            entities["appliance_types"].append("refrigerator")
+        if "dishwasher" in query_lower:
+            entities["appliance_types"].append("dishwasher")
 
         # Extract categories
         categories = [

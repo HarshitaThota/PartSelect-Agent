@@ -109,8 +109,16 @@ class AgentOrchestrator:
             elif intent == "troubleshooting":
                 specialist_result = await self.troubleshooting_agent.process(query, context)
             elif intent in ["purchase_intent", "add_to_cart", "cart_management"]:
-                context["cart"] = self.cart
-                specialist_result = await self.transaction_agent.process(query, context)
+                # First get part details from product agent, then process transaction
+                product_result = await self.product_agent.process(query, context)
+                if product_result and product_result.success:
+                    # Pass product agent results to transaction agent
+                    context["specialist_result"] = product_result.data
+                    context["cart"] = self.cart
+                    specialist_result = await self.transaction_agent.process(query, context)
+                else:
+                    # If product agent fails, use its result directly
+                    specialist_result = product_result
             else:
                 specialist_result = await self.product_agent.process(query, context)
 

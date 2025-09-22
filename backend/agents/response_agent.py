@@ -55,11 +55,14 @@ class ResponseAgent(BaseAgent):
             if not parts and "part" in specialist_result:
                 parts = [specialist_result["part"]]
 
+            # Filter parts based on intent - for search queries, limit to top relevant results
+            filtered_parts = self._filter_parts_for_response(parts, intent_data.get("intent"), response_text)
+
             return AgentResult(
                 success=True,
                 data={
                     "message": response_text,
-                    "parts": parts,
+                    "parts": filtered_parts,
                     "query_type": intent_data.get("intent", "general"),
                     "confidence": specialist_result.get("confidence", 0.5),
                     "agent_trace": ["scope", "intent", "product", "response"],
@@ -265,3 +268,33 @@ Please provide a helpful response about the parts query."""
                 context_parts.append(f"   Solutions: {problem['solutions']}")
 
         return "\n".join(context_parts) if context_parts else "No specific context available"
+
+    def _filter_parts_for_response(self, parts: List[Dict], intent: str, response_text: str) -> List[Dict]:
+        """Filter parts based on what's mentioned in the response text to maintain consistency"""
+        if not parts:
+            return parts
+
+        # For specific part lookups, purchase intents, or installation help, return all parts
+        if intent in ["part_lookup", "purchase_intent", "installation_help", "compatibility_check"]:
+            return parts
+
+        # For search queries, try to extract part numbers mentioned in response
+        import re
+        mentioned_part_numbers = re.findall(r'#(PS\d+)', response_text)
+
+        if mentioned_part_numbers:
+            # Return only parts mentioned in the response
+            filtered_parts = []
+            for part in parts:
+                if part.get('partselect_number') in mentioned_part_numbers:
+                    filtered_parts.append(part)
+
+            # If we found matches, return them in the order mentioned
+            if filtered_parts:
+                return filtered_parts
+
+        # Fallback: for general searches, limit to top 3 most relevant parts
+        if intent in ["general_info", "product_search"] and len(parts) > 3:
+            return parts[:3]
+
+        return parts
