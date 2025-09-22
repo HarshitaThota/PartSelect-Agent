@@ -354,7 +354,6 @@ intents = {
 **Candidate**: Harshita Thota
 **Timeline**: 2-Day Implementation
 **Date**: September 2025
-**Company**: Instalily
 
 </div>
 
